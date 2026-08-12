@@ -1,0 +1,20 @@
+#Dados ( não versionar os dados brutos/tratados )
+*.xlsx
+*.csv
+*.parquet
+*.db
+*.sqlite3
+etl/raw_data/*
+!etl/raw_data/.gitkeep
+
+# Ambiente Python
+venv/
+env/
+__pycache__/
+*.pyc
+.env
+
+# Django
+db.sqlite2
+staticfiles/
+media/
