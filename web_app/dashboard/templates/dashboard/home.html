@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Painel SIHSUS Diabetes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <h1>Distribuição de Complicações — Diabetes SP 2025</h1>
+    <canvas id="graficoComplicacoes" style="max-width: 700px"></canvas>
+
+    <h1>Complicações por Mês — 2025</h1>
+    <canvas id="graficoMensal" style="max-width: 900px"></canvas>
+
+    {{ labels|json_script:"data-labels" }}
+    {{valores|json_script:"data-valores"}} {{ meses|json_script:"data-meses" }}
+    {{series_mensais|json_script:"data-series-mensais" }}
+
+    <script>
+      // ---------- Gráfico 1: distribuição geral ----------
+      const labels = JSON.parse(
+        document.getElementById("data-labels").textContent,
+      );
+      const valores = JSON.parse(
+        document.getElementById("data-valores").textContent,
+      );
+
+      new Chart(document.getElementById("graficoComplicacoes"), {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Nº de atendimentos",
+              data: valores,
+              backgroundColor: ["#4C72B0", "#DD8452", "#55A868", "#C44E52"],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+        },
+      });
+
+      // ---------- Gráfico 2: evolução mensal ----------
+      const meses = JSON.parse(
+        document.getElementById("data-meses").textContent,
+      );
+      const seriesMensais = JSON.parse(
+        document.getElementById("data-series-mensais").textContent,
+      );
+
+      const cores = ["#4C72B0", "#DD8452", "#55A868", "#C44E52"];
+      const datasetsMensais = Object.keys(seriesMensais).map((tipo, index) => ({
+        label: tipo,
+        data: seriesMensais[tipo],
+        borderColor: cores[index % cores.length],
+        backgroundColor: cores[index % cores.length],
+        fill: false,
+        tension: 0.2,
+      }));
+
+      new Chart(document.getElementById("graficoMensal"), {
+        type: "line",
+        data: {
+          labels: meses,
+          datasets: datasetsMensais,
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: true } },
+        },
+      });
+    </script>
+  </body>
+</html>
