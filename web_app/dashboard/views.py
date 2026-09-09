@@ -34,10 +34,15 @@ def home(request):
             for mes in meses
         ]
 
-    contexto = {
+        contexto = {
         'labels': labels,
         'valores': valores,
         'meses': meses,
         'series_mensais': series_mensais,
     }
+
     return render(request, 'dashboard/home.html', contexto)
+
+
+def quadlab_moderno(request):
+    return render(request, 'dashboard/quadlab_moderno.html')

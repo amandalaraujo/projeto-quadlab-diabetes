@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuadLab — Diabetes Mellitus em Dados</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f7fb;--surface:#fff;--surface-2:#f8fafc;--ink:#101828;--muted:#667085;
+  --line:#e6eaf0;--green:#12b8a6;--green-dark:#078b80;--navy:#101828;
+  --coral:#f04461;--yellow:#f5a623;--blue:#4f7cff;
+  --shadow:0 12px 32px rgba(16,24,40,.07);--shadow-sm:0 2px 10px rgba(16,24,40,.05);
+  --radius:20px;--sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input{font:inherit}button{cursor:pointer}
+.view{display:none;opacity:0}.view.active{display:block;opacity:1}
+.mockbar{position:sticky;top:0;z-index:1000;background:#0b1220;color:#e7edf6;padding:9px 18px;display:flex;align-items:center;gap:8px;font-size:12px}
+.mockbar strong{margin-right:14px;color:#6ee7d8}.mockbar button{border:0;background:rgba(255,255,255,.08);color:#cbd5e1;padding:7px 13px;border-radius:8px}
+.mockbar button.active{background:var(--green);color:white}
+.logo{display:flex;align-items:center;gap:11px;font-weight:800}.logo-mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#26d4c1,#087b72);position:relative;box-shadow:0 8px 18px rgba(18,184,166,.25)}
+.logo-mark:after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:#fff;right:-2px;bottom:-2px;box-shadow:0 0 0 3px var(--bg)}
+.logo span{font-size:21px;letter-spacing:-.6px}
+.btn{border:0;border-radius:12px;padding:12px 20px;font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.2s}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 7px 18px rgba(18,184,166,.22)}
+.btn-primary:hover{background:var(--green-dark);transform:translateY(-2px)}
+.btn-outline{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn-outline:hover{border-color:#cdd5df;transform:translateY(-2px)}
+.public-header{position:sticky;top:43px;z-index:998;max-width:1180px;margin:14px auto;padding:13px 20px 13px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.82);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.9);border-radius:18px;box-shadow:var(--shadow-sm)}
+.nav{display:flex;gap:28px;align-items:center}.nav a{font-size:13px;font-weight:600;color:var(--muted);text-decoration:none}.nav a:hover{color:var(--green)}
+.hero{max-width:1180px;margin:auto;padding:76px 24px 92px;display:grid;grid-template-columns:1fr .95fr;gap:72px;align-items:center}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--green-dark);font-weight:800;background:#d9faf5;padding:7px 12px;border-radius:50px}
+.hero h1{font-size:clamp(44px,5.5vw,66px);font-weight:800;line-height:1.03;letter-spacing:-2.7px;margin-top:20px}
+.hero p{font-size:17px;line-height:1.75;color:var(--muted);margin-top:22px;max-width:570px}.cta{display:flex;gap:12px;margin-top:32px}
+.preview{background:#fff;border:1px solid var(--line);border-radius:26px;box-shadow:0 28px 70px rgba(16,24,40,.10);padding:24px;position:relative;overflow:hidden}
+.preview:before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--green),#6f8cff)}
+.preview-top{display:flex;justify-content:space-between;font-size:10px;font-weight:800;color:#98a2b3;margin-bottom:18px;letter-spacing:1.2px}.preview-title{font-size:22px;font-weight:800;margin-bottom:18px;letter-spacing:-.5px}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.kpi{background:var(--surface-2);border:1px solid var(--line);border-radius:15px;padding:14px}.kpi b{display:block;font-size:20px}.kpi span{font-size:10px;color:var(--muted)}
+.chart-box{margin-top:16px;border:1px solid var(--line);border-radius:16px;padding:15px;background:#fff}.chart-head{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:9px}.legend{display:flex;gap:18px;font-size:10px;color:var(--muted);justify-content:center;margin-top:10px}.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.section{max-width:1180px;margin:auto;padding:88px 24px}.section.alt{max-width:none;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.section-inner{max-width:1132px;margin:auto}
+.section-heading{margin-bottom:48px;text-align:center;max-width:700px;margin-inline:auto}.section-heading h2{font-size:34px;font-weight:800;letter-spacing:-1.3px;margin-bottom:12px}.section-heading p{color:var(--muted);font-size:16px;line-height:1.75}
+.discovery-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.discovery{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;transition:.25s;cursor:pointer}.discovery:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:#b9ebe5}.discovery .num{font-size:12px;font-weight:800;color:var(--green-dark);background:#d9faf5;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;margin-bottom:17px}.discovery h3{font-size:16px;margin-bottom:8px}.discovery p{font-size:12px;color:var(--muted);line-height:1.6}.arrow{display:inline-block;margin-top:15px;color:var(--green-dark);font-weight:800;font-size:11px}
+.findings{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.finding{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:28px 20px;text-align:left}.finding b{font-size:34px;font-weight:800;color:var(--green-dark);display:block;letter-spacing:-1px}.finding span{font-size:12px;color:var(--muted);display:block;margin-top:7px}
+.method{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.method-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:var(--shadow-sm)}.method-card .num{font-size:11px;font-weight:800;color:var(--green-dark);margin-bottom:12px}.method-card h3{font-size:18px;margin-bottom:8px}.method-card p{font-size:13px;color:var(--muted)}
+.access{max-width:1132px;margin:auto;background:linear-gradient(135deg,#0f172a,#172033);color:#fff;border-radius:24px;padding:48px;display:flex;align-items:center;justify-content:space-between;gap:35px;position:relative;overflow:hidden}.access:after{content:'';position:absolute;right:-80px;top:-120px;width:320px;height:320px;background:#12b8a6;filter:blur(85px);opacity:.24;border-radius:50%}.access h2,.access p{position:relative;z-index:1}.access h2{font-size:29px;letter-spacing:-1px}.access p{color:#98a2b3;font-size:14px;margin-top:8px}
+.footer{max-width:1180px;margin:auto;padding:34px 24px;display:flex;justify-content:space-between;color:#98a2b3;font-size:11px;font-weight:600}
+
+.login-page{min-height:calc(100vh - 42px);display:flex;align-items:center;justify-content:center;padding:30px;background:radial-gradient(circle at 50% 20%,#dffbf7 0,transparent 38%),var(--bg)}
+.login-card{width:100%;max-width:430px;background:#fff;border:1px solid var(--line);border-radius:25px;padding:38px;box-shadow:var(--shadow)}.login-card .logo{justify-content:center;margin-bottom:27px}.login-card h1{text-align:center;font-size:27px;letter-spacing:-1px}.sub{text-align:center;color:var(--muted);font-size:13px;margin:10px 0 28px}.field{margin-top:17px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:7px}.field input{width:100%;padding:13px 14px;background:#f8fafc;border:1px solid var(--line);border-radius:11px;font-size:14px;outline:none}.field input:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(18,184,166,.12);background:#fff}.login-card .btn-primary{width:100%;margin-top:27px}.login-note{text-align:center;font-size:11px;color:var(--muted);margin-top:17px}
+
+.dashboard{min-height:100vh;display:grid;grid-template-columns:240px 1fr;background:var(--bg)}.sidebar{background:#fff;border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column}.sidebar .logo{margin:7px 12px 34px}.side-section{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:#98a2b3;padding:0 12px;margin:18px 0 9px}.side-link{border:0;background:transparent;color:#667085;font-weight:700;text-align:left;width:100%;padding:11px 13px;border-radius:11px;font-size:12px;margin-bottom:3px}.side-link:hover{background:#f5f7fb;color:var(--ink)}.side-link.active{background:#dff9f5;color:var(--green-dark)}.sidebar-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:17px}.sidebar-bottom button{background:transparent;border:0;color:#667085;font-size:12px;font-weight:700;padding:11px;width:100%;text-align:left;border-radius:10px}.sidebar-bottom button:hover{background:#fff1f3;color:var(--coral)}
+.dmain{padding:34px 38px;overflow:auto}.dhead{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:26px}.dhead h1{font-size:28px;font-weight:800;letter-spacing:-1px}.dhead p{font-size:13px;color:var(--muted);margin-top:5px}.filters{display:flex;gap:8px;flex-wrap:wrap}.filter{background:#fff;border:1px solid var(--line);border-radius:50px;padding:7px 12px;font-size:11px;font-weight:600;color:#667085;box-shadow:var(--shadow-sm)}.filter strong{color:var(--ink);margin-left:3px}
+.dashboard-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.dcard{background:#fff;border:1px solid var(--line);border-radius:17px;padding:20px;box-shadow:var(--shadow-sm)}.dcard .label{font-size:10px;font-weight:800;color:#98a2b3;text-transform:uppercase;letter-spacing:.6px}.dcard .value{font-size:28px;font-weight:800;margin-top:6px;letter-spacing:-1px}.dcard .trend{font-size:10px;font-weight:800;color:var(--green-dark);margin-top:7px;background:#dff9f5;display:inline-block;padding:4px 8px;border-radius:50px}
+.panels{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-top:14px}.panel{background:#fff;border:1px solid var(--line);border-radius:17px;padding:20px;box-shadow:var(--shadow-sm)}.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.panel h3{font-size:14px;font-weight:800}.panel small{font-size:9px;font-weight:800;color:#98a2b3;text-transform:uppercase;background:#f5f7fb;padding:5px 8px;border-radius:50px}
+.rank{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:11px;font-weight:600}.rank-name{width:100px;color:var(--ink)}.rank-track{height:7px;flex:1;background:#edf1f5;border-radius:50px;overflow:hidden}.rank-fill{height:100%;background:linear-gradient(90deg,#24cdbb,var(--green-dark));border-radius:50px}.rank-val{width:42px;text-align:right;color:#667085;font-weight:700}.insight{margin-top:17px;background:#f7fbfa;border:1px solid #d8efeb;border-left:3px solid var(--green);border-radius:10px;padding:13px;font-size:11px;line-height:1.6;color:#52606d}
+.bottom-panels{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}.mini{background:#fff;border:1px solid var(--line);border-radius:17px;padding:20px;box-shadow:var(--shadow-sm)}.mini h3{font-size:10px;color:#98a2b3;margin-bottom:12px;letter-spacing:1px}.mini-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:11px;font-weight:600}.mini-row:last-child{border:0;padding-bottom:0}.placeholder{height:310px;border:1px dashed #ccd5df;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#98a2b3;font-size:11px;font-weight:800;background:#f9fafb}.map{height:310px;position:relative;overflow:hidden;background:#f3f6f8;border-radius:13px;border:1px solid var(--line)}.map-shape{position:absolute;width:250px;height:275px;background:#d6dde3;border-radius:45% 55% 52% 48%;left:35%;top:10%;transform:rotate(13deg)}.map-dot{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 5px rgba(240,68,97,.16);border:2px solid #fff}.table{width:100%;border-collapse:collapse;font-size:11px}.table th,.table td{text-align:left;padding:12px 9px;border-bottom:1px solid var(--line)}.table th{color:#98a2b3;font-weight:800;text-transform:uppercase;font-size:9px}.table tr:hover td{background:#f8fafc}
+@media(max-width:1050px){.discovery-grid{grid-template-columns:repeat(3,1fr)}.hero{grid-template-columns:1fr}.dashboard-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:850px){.nav{display:none}.dashboard{grid-template-columns:1fr}.sidebar{display:none}.panels,.bottom-panels{grid-template-columns:1fr}.dhead{flex-direction:column;align-items:flex-start;gap:16px}}
+@media(max-width:620px){.hero{padding-top:45px}.hero h1{font-size:42px}.discovery-grid,.findings,.method,.dashboard-grid{grid-template-columns:1fr}.access{margin:0 20px;display:block;padding:35px 26px;text-align:center}.access .btn{margin-top:22px;width:100%}.dmain{padding:22px 16px}.mockbar{overflow:auto;white-space:nowrap}}
+</style>
+</head>
+<body>
+
+<div class="mockbar">
+  <strong>QuadLab — protótipo</strong>
+  <button class="mocktab active" data-view="home">Site público</button>
+  <button class="mocktab" data-view="login">Login</button>
+  <button class="mocktab" data-view="dashboard">Área de análise</button>
+</div>
+
+<section id="home" class="view active">
+<header class="public-header">
+  <div class="logo" onclick="go('home')" style="cursor:pointer"><div class="logo-mark"></div><span>QuadLab</span></div>
+  <nav class="nav">
+    <a href="#projeto">O projeto</a>
+    <a href="#descobertas">O que analisamos</a>
+    <a href="#metodologia">Metodologia</a>
+    <a href="#achados">Achados</a>
+  </nav>
+  <button class="btn btn-primary" onclick="go('login')">Acessar análise →</button>
+</header>
+
+<div class="hero">
+  <div>
+    <div class="eyebrow">Análise de dados em saúde</div>
+    <h1>Diabetes Mellitus em dados.</h1>
+    <p>O QuadLab transforma dados públicos do SIHSUS em informações visuais para compreender as internações hospitalares relacionadas ao Diabetes Mellitus no Brasil — onde acontecem, quem são os pacientes e o impacto no sistema de saúde.</p>
+    <div class="cta">
+      <button class="btn btn-primary" onclick="document.getElementById('descobertas').scrollIntoView()">Explorar os dados ↓</button>
+      <button class="btn btn-outline" onclick="go('login')">Acessar dashboards</button>
+    </div>
+  </div>
+  <div class="preview">
+    <div class="preview-top"><span>QUADLAB / VISÃO GERAL</span><span>SIHSUS</span></div>
+    <div class="preview-title">Panorama das internações</div>
+    <div class="kpi-row">
+      <div class="kpi"><b>88,6 mil</b><span>AIHs analisadas</span></div>
+      <div class="kpi"><b>2.145</b><span>óbitos</span></div>
+      <div class="kpi"><b>R$ 6 bi</b><span>custo total</span></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-head"><span>Evolução das internações</span><span>2023 — 2025</span></div>
+      <svg viewBox="0 0 460 150">
+        <line x1="0" y1="130" x2="460" y2="130" stroke="#e2e8f0"/>
+        <line x1="0" y1="85" x2="460" y2="85" stroke="#f1f5f9"/>
+        <polyline points="10,106 85,83 160,96 235,53 310,67 385,42 450,52" fill="none" stroke="#0d9488" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="10,120 85,113 160,116 235,101 310,107 385,94 450,98" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="450" cy="52" r="5" fill="#0d9488"/>
+      </svg>
+      <div class="legend"><span><i class="dot" style="background:#0d9488"></i>Internações</span><span><i class="dot" style="background:#f43f5e"></i>Casos graves</span></div>
+    </div>
+  </div>
+</div>
+
+<section id="projeto" class="section alt">
+<div class="section-inner">
+  <div class="section-heading">
+    <h2>Transformar dados em perguntas.</h2>
+    <p>O objetivo do projeto é tornar uma base extensa de internações hospitalares mais fácil de interpretar. Em vez de apenas apresentar números, o QuadLab organiza os dados para permitir comparações territoriais, demográficas, clínicas e econômicas.</p>
+  </div>
+</div>
+</section>
+
+<section id="descobertas" class="section">
+  <div class="section-heading">
+    <h2>O que podemos descobrir?</h2>
+    <p>O site apresenta os principais eixos da análise. Os dashboards completos ficam disponíveis na área restrita.</p>
+  </div>
+  <div class="discovery-grid">
+    <div class="discovery"><div class="num">01</div><h3>Onde estão?</h3><p>Distribuição das internações por região, estado e município.</p><span class="arrow">Distribuição territorial →</span></div>
+    <div class="discovery"><div class="num">02</div><h3>Quem são?</h3><p>Perfil dos pacientes segundo faixa etária e gênero.</p><span class="arrow">Perfil demográfico →</span></div>
+    <div class="discovery"><div class="num">03</div><h3>O que acontece?</h3><p>Gravidade, complicações e mortalidade associadas às internações.</p><span class="arrow">Perfil clínico →</span></div>
+    <div class="discovery"><div class="num">04</div><h3>Como evolui?</h3><p>Comportamento das internações e dos indicadores ao longo do tempo.</p><span class="arrow">Evolução temporal →</span></div>
+    <div class="discovery"><div class="num">05</div><h3>Quanto custa?</h3><p>Custos das internações, permanência hospitalar e impacto econômico.</p><span class="arrow">Impacto econômico →</span></div>
+  </div>
+</section>
+
+<section id="achados" class="section alt">
+<div class="section-inner">
+  <div class="section-heading">
+    <h2>Principais achados</h2>
+    <p>Uma prévia dos indicadores apresentados nos dashboards. Os valores abaixo podem ser substituídos pelos resultados finais consolidados do projeto.</p>
+  </div>
+  <div class="findings">
+    <div class="finding"><b>88,6 mil</b><span>AIHs relacionadas ao Diabetes Mellitus.</span></div>
+    <div class="finding"><b>2.145</b><span>óbitos registrados no conjunto.</span></div>
+    <div class="finding"><b>4,93 dias</b><span>média de permanência hospitalar.</span></div>
+    <div class="finding"><b>R$ 937,59</b><span>custo médio por internação.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="metodologia" class="section">
+  <div class="section-heading">
+    <h2>Como os dados foram tratados?</h2>
+    <p>Da fonte pública até os painéis interativos, o projeto organiza o processo em três etapas.</p>
+  </div>
+  <div class="method">
+    <div class="method-card"><div class="num">01 — FONTE</div><h3>Dados públicos</h3><p>Extração das Autorizações de Internação Hospitalar (AIH) do SIHSUS, com recorte relacionado ao Diabetes Mellitus segundo a classificação utilizada pelo projeto.</p></div>
+    <div class="method-card"><div class="num">02 — TRATAMENTO</div><h3>Organização dos dados</h3><p>Limpeza, padronização e agregação das informações para permitir análises por território, perfil dos pacientes, período, complicações e indicadores.</p></div>
+    <div class="method-card"><div class="num">03 — VISUALIZAÇÃO</div><h3>Power BI</h3><p>Modelagem e construção dos dashboards interativos para exploração dos indicadores e comparação dos diferentes recortes.</p></div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+<div class="access">
+  <div><h2>Quer investigar os dados em profundidade?</h2><p>Acesse a área restrita para explorar os dashboards analíticos desenvolvidos em Power BI.</p></div>
+  <button class="btn" style="background:#fff;color:var(--navy)" onclick="go('login')">Acessar dashboards →</button>
+</div>
+</section>
+
+<footer class="footer"><span>QuadLab · Projeto acadêmico</span><span>Dados: DataSUS / SIHSUS · Visualização: Power BI</span></footer>
+</section>
+
+<section id="login" class="view">
+<div class="login-page">
+  <div class="login-card">
+    <div class="logo"><div class="logo-mark"></div><span>QuadLab</span></div>
+    <h1>Acesse a análise</h1>
+    <p class="sub">Área destinada à exploração dos dashboards do projeto. Informe as credenciais fornecidas.</p>
+    <div class="field"><label>Usuário</label><input id="user" type="text" placeholder="Digite seu usuário"></div>
+    <div class="field"><label>Senha</label><input id="pass" type="password" placeholder="Digite sua senha"></div>
+    <button class="btn btn-primary" onclick="login()">Entrar na área de análise →</button>
+    <p class="login-note">Acesso destinado à orientação e avaliação acadêmica.</p>
+    <button class="btn btn-outline" style="width:100%;margin-top:16px" onclick="go('home')">← Voltar ao site</button>
+  </div>
+</div>
+</section>
+
+<section id="dashboard" class="view">
+<div class="dashboard">
+<aside class="sidebar">
+  <div class="logo"><div class="logo-mark"></div><span>QuadLab</span></div>
+  <div class="side-section">Análises</div>
+  <button class="side-link active" data-page="overview">Visão geral</button>
+  <button class="side-link" data-page="territory">Onde estão?</button>
+  <button class="side-link" data-page="demographic">Quem são?</button>
+  <button class="side-link" data-page="mortality">Mortalidade</button>
+  <button class="side-link" data-page="complications">Complicações e CID-10</button>
+  <button class="side-link" data-page="evolution">Evolução das AIHs</button>
+  <button class="side-link" data-page="economic">Impacto econômico</button>
+  <div class="sidebar-bottom"><button onclick="go('home')">← Sair da análise</button></div>
+</aside>
+
+<main class="dmain">
+  <div class="dhead">
+    <div><h1 id="dashTitle">Visão geral</h1><p id="dashSubtitle">Panorama das internações hospitalares relacionadas ao Diabetes Mellitus</p></div>
+    <div class="filters">
+      <span class="filter">Ano: <strong>2023–2025 ▾</strong></span>
+      <span class="filter">Região: <strong>Brasil ▾</strong></span>
+      <span class="filter">UF: <strong>Todas ▾</strong></span>
+      <span class="filter">Idade: <strong>Todas ▾</strong></span>
+    </div>
+  </div>
+  <div id="dashContent"></div>
+</main>
+</div>
+</section>
+
+<script>
+const pages={
+overview:{
+title:"Visão geral",
+subtitle:"Panorama das internações hospitalares relacionadas ao Diabetes Mellitus",
+html:`
+<div class="dashboard-grid">
+<div class="dcard"><div class="label">AIHs diabetes</div><div class="value">88,6 mil</div><div class="trend">↑ indicador principal</div></div>
+<div class="dcard"><div class="label">Casos graves</div><div class="value">25,3%</div><div class="trend">↑ severidade</div></div>
+<div class="dcard"><div class="label">Óbitos</div><div class="value">2.145</div><div class="trend">mortalidade</div></div>
+<div class="dcard"><div class="label">Custo total</div><div class="value">R$ 6 bi</div><div class="trend">impacto econômico</div></div>
+</div>
+<div class="panels">
+<div class="panel"><div class="panel-head"><h3>Evolução das internações</h3><small>2023 — 2025</small></div>
+<svg viewBox="0 0 650 250">
+<line x1="0" y1="215" x2="650" y2="215" stroke="#e2e8f0"/><line x1="0" y1="145" x2="650" y2="145" stroke="#f1f5f9"/><line x1="0" y1="75" x2="650" y2="75" stroke="#f1f5f9"/>
+<polyline points="10,170 110,145 210,158 310,98 410,118 510,72 635,90" fill="none" stroke="#0d9488" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="10,195 110,187 210,190 310,164 410,174 510,153 635,160" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg><div class="legend"><span><i class="dot" style="background:#0d9488"></i>AIHs diabetes</span><span><i class="dot" style="background:#f43f5e"></i>Casos graves</span></div>
+</div>
+<div class="panel"><div class="panel-head"><h3>Municípios com mais internações</h3><small>ranking</small></div>
+<div class="rank"><span class="rank-name">São Paulo</span><div class="rank-track"><div class="rank-fill" style="width:100%"></div></div><span class="rank-val">20,1k</span></div>
+<div class="rank"><span class="rank-name">Guarulhos</span><div class="rank-track"><div class="rank-fill" style="width:48%"></div></div><span class="rank-val">3,3k</span></div>
+<div class="rank"><span class="rank-name">São Bernardo</span><div class="rank-track"><div class="rank-fill" style="width:37%"></div></div><span class="rank-val">2,4k</span></div>
+<div class="rank"><span class="rank-name">Campinas</span><div class="rank-track"><div class="rank-fill" style="width:29%"></div></div><span class="rank-val">1,6k</span></div>
+<div class="rank"><span class="rank-name">Ribeirão Preto</span><div class="rank-track"><div class="rank-fill" style="width:25%"></div></div><span class="rank-val">1,4k</span></div>
+<div class="insight"><b>Leitura:</b> use os filtros para comparar a concentração das internações entre diferentes recortes territoriais.</div>
+</div></div>
+<div class="bottom-panels">
+<div class="mini"><h3>PERMANÊNCIA</h3><div class="mini-row"><span>Média</span><span>4,93 dias</span></div><div class="mini-row"><span>Indicador</span><span>Hospitalar</span></div></div>
+<div class="mini"><h3>MORTALIDADE</h3><div class="mini-row"><span>Óbitos</span><span>2.145</span></div><div class="mini-row"><span>Análise</span><span>Por território</span></div></div>
+<div class="mini"><h3>CUSTO</h3><div class="mini-row"><span>Médio / AIH</span><span>R$ 937,59</span></div><div class="mini-row"><span>Análise</span><span>Por período</span></div></div>
+</div>`},
+territory:{
+title:"Onde estão as internações?",
+subtitle:"Distribuição territorial por região, UF e município",
+html:`
+<div class="panels">
+<div class="panel"><div class="panel-head"><h3>Distribuição territorial</h3><small>Brasil</small></div>
+<div class="map"><div class="map-shape"></div><i class="map-dot" style="left:53%;top:56%"></i><i class="map-dot" style="left:48%;top:43%"></i><i class="map-dot" style="left:57%;top:65%"></i><i class="map-dot" style="left:44%;top:67%"></i></div></div>
+<div class="panel"><div class="panel-head"><h3>Internações por região</h3><small>AIHs</small></div>
+<div class="rank"><span class="rank-name">Sudeste</span><div class="rank-track"><div class="rank-fill" style="width:100%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Nordeste</span><div class="rank-track"><div class="rank-fill" style="width:72%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Sul</span><div class="rank-track"><div class="rank-fill" style="width:48%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Centro-Oeste</span><div class="rank-track"><div class="rank-fill" style="width:29%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Norte</span><div class="rank-track"><div class="rank-fill" style="width:22%"></div></div><span class="rank-val">—</span></div>
+</div></div>
+<div class="panel" style="margin-top:20px"><div class="panel-head"><h3>Ranking por município</h3><small>maiores volumes</small></div>
+<table class="table"><tr><th>Município</th><th>UF</th><th>Internações</th></tr><tr><td>São Paulo</td><td>SP</td><td>20,1k</td></tr><tr><td>Guarulhos</td><td>SP</td><td>3,3k</td></tr><tr><td>São Bernardo</td><td>SP</td><td>2,4k</td></tr><tr><td>Campinas</td><td>SP</td><td>1,6k</td></tr></table></div>`},
+demographic:{
+title:"Quem são os pacientes?",
+subtitle:"Perfil demográfico das internações",
+html:`<div class="dashboard-grid"><div class="dcard"><div class="label">Faixa predominante</div><div class="value">—</div><div class="trend">ver base final</div></div><div class="dcard"><div class="label">Gênero</div><div class="value">—</div><div class="trend">distribuição</div></div><div class="dcard"><div class="label">Internações</div><div class="value">88,6 mil</div><div class="trend">total</div></div><div class="dcard"><div class="label">Óbitos</div><div class="value">2.145</div><div class="trend">total</div></div></div><div class="panels"><div class="panel"><div class="panel-head"><h3>Internações por faixa etária</h3></div><div class="placeholder">GRÁFICO DE DISTRIBUIÇÃO ETÁRIA</div></div><div class="panel"><div class="panel-head"><h3>Distribuição por gênero</h3></div><div class="placeholder">GRÁFICO DE GÊNERO</div></div></div>`},
+mortality:{
+title:"Mortalidade",
+subtitle:"Óbitos e indicadores de mortalidade associados às internações",
+html:`<div class="dashboard-grid"><div class="dcard"><div class="label">Óbitos</div><div class="value">2.145</div></div><div class="dcard"><div class="label">Internações</div><div class="value">88,6 mil</div></div><div class="dcard"><div class="label">Taxa de mortalidade</div><div class="value">—</div></div><div class="dcard"><div class="label">Período</div><div class="value">2023–25</div></div></div><div class="panel" style="margin-top:20px"><div class="panel-head"><h3>Mortalidade por território e perfil</h3><small>use os filtros</small></div><div class="placeholder">GRÁFICO / MAPA DE MORTALIDADE</div></div>`},
+complications:{
+title:"Complicações e CID-10",
+subtitle:"Principais complicações e classificações observadas nas internações",
+html:`<div class="panels"><div class="panel"><div class="panel-head"><h3>Principais complicações</h3><small>ranking</small></div><div class="rank"><span class="rank-name">Complicação 01</span><div class="rank-track"><div class="rank-fill" style="width:86%"></div></div><span class="rank-val">—</span></div><div class="rank"><span class="rank-name">Complicação 02</span><div class="rank-track"><div class="rank-fill" style="width:68%"></div></div><span class="rank-val">—</span></div><div class="rank"><span class="rank-name">Complicação 03</span><div class="rank-track"><div class="rank-fill" style="width:53%"></div></div><span class="rank-val">—</span></div><div class="rank"><span class="rank-name">Complicação 04</span><div class="rank-track"><div class="rank-fill" style="width:39%"></div></div><span class="rank-val">—</span></div></div><div class="panel"><div class="panel-head"><h3>CID-10</h3><small>classificações</small></div><div class="placeholder">DISTRIBUIÇÃO POR CID-10</div></div></div>`},
+evolution:{
+title:"Evolução das AIHs",
+subtitle:"Comportamento das internações ao longo do período analisado",
+html:`<div class="panel"><div class="panel-head"><h3>Panorama temporal das internações</h3><small>2023 — 2025</small></div><div class="placeholder">SÉRIE TEMPORAL — AIHs / GRAVIDADE / ÓBITOS</div></div><div class="insight">Compare os anos utilizando os filtros e observe mudanças no volume de internações, severidade e mortalidade.</div>`},
+economic:{
+title:"Impacto econômico",
+subtitle:"Custos e permanência hospitalar associados às internações",
+html:`<div class="dashboard-grid"><div class="dcard"><div class="label">Custo total</div><div class="value">R$ 6 bi</div></div><div class="dcard"><div class="label">Custo médio / AIH</div><div class="value">R$ 937,59</div></div><div class="dcard"><div class="label">Permanência média</div><div class="value">4,93 dias</div></div><div class="dcard"><div class="label">AIHs</div><div class="value">88,6 mil</div></div></div><div class="panels"><div class="panel"><div class="panel-head"><h3>Evolução do custo</h3></div><div class="placeholder">GRÁFICO DE CUSTOS POR PERÍODO</div></div><div class="panel"><div class="panel-head"><h3>Permanência hospitalar</h3></div><div class="placeholder">GRÁFICO DE PERMANÊNCIA</div></div></div>`}
+};
+
+function go(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(view).classList.add('active');
+  document.querySelectorAll('.mocktab').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function login(){go('dashboard')}
+function renderPage(key){
+  const p=pages[key];
+  document.getElementById('dashTitle').textContent=p.title;
+  document.getElementById('dashSubtitle').textContent=p.subtitle;
+  document.getElementById('dashContent').innerHTML=p.html;
+  document.querySelectorAll('.side-link').forEach(b=>b.classList.toggle('active',b.dataset.page===key));
+}
+document.querySelectorAll('.mocktab').forEach(b=>b.onclick=()=>go(b.dataset.view));
+document.querySelectorAll('.side-link').forEach(b=>b.onclick=()=>renderPage(b.dataset.page));
+renderPage('overview');
+</script>
+</body>
+</html>
