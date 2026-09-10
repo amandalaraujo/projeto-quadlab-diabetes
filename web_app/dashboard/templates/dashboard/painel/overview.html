@@ -1,0 +1,35 @@
+{% extends "dashboard/painel/base_painel.html" %}
+
+{% block title %}Visão geral — QuadLab{% endblock %}
+{% block dash_title %}Visão geral{% endblock %}
+{% block dash_subtitle %}Panorama das internações hospitalares relacionadas ao Diabetes Mellitus{% endblock %}
+
+{% block dash_content %}
+<div class="dashboard-grid">
+<div class="dcard"><div class="label">AIHs diabetes</div><div class="value">88,6 mil</div><div class="trend">↑ indicador principal</div></div>
+<div class="dcard"><div class="label">Casos graves</div><div class="value">25,3%</div><div class="trend">↑ severidade</div></div>
+<div class="dcard"><div class="label">Óbitos</div><div class="value">2.145</div><div class="trend">mortalidade</div></div>
+<div class="dcard"><div class="label">Custo total</div><div class="value">R$ 6 bi</div><div class="trend">impacto econômico</div></div>
+</div>
+<div class="panels">
+<div class="panel"><div class="panel-head"><h3>Evolução das internações</h3><small>2023 — 2025</small></div>
+<svg viewBox="0 0 650 250">
+<line x1="0" y1="215" x2="650" y2="215" stroke="#e2e8f0"/><line x1="0" y1="145" x2="650" y2="145" stroke="#f1f5f9"/><line x1="0" y1="75" x2="650" y2="75" stroke="#f1f5f9"/>
+<polyline points="10,170 110,145 210,158 310,98 410,118 510,72 635,90" fill="none" stroke="#0d9488" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="10,195 110,187 210,190 310,164 410,174 510,153 635,160" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg><div class="legend"><span><i class="dot" style="background:#0d9488"></i>AIHs diabetes</span><span><i class="dot" style="background:#f43f5e"></i>Casos graves</span></div>
+</div>
+<div class="panel"><div class="panel-head"><h3>Municípios com mais internações</h3><small>ranking</small></div>
+<div class="rank"><span class="rank-name">São Paulo</span><div class="rank-track"><div class="rank-fill" style="width:100%"></div></div><span class="rank-val">20,1k</span></div>
+<div class="rank"><span class="rank-name">Guarulhos</span><div class="rank-track"><div class="rank-fill" style="width:48%"></div></div><span class="rank-val">3,3k</span></div>
+<div class="rank"><span class="rank-name">São Bernardo</span><div class="rank-track"><div class="rank-fill" style="width:37%"></div></div><span class="rank-val">2,4k</span></div>
+<div class="rank"><span class="rank-name">Campinas</span><div class="rank-track"><div class="rank-fill" style="width:29%"></div></div><span class="rank-val">1,6k</span></div>
+<div class="rank"><span class="rank-name">Ribeirão Preto</span><div class="rank-track"><div class="rank-fill" style="width:25%"></div></div><span class="rank-val">1,4k</span></div>
+<div class="insight"><b>Leitura:</b> use os filtros para comparar a concentração das internações entre diferentes recortes territoriais.</div>
+</div></div>
+<div class="bottom-panels">
+<div class="mini"><h3>PERMANÊNCIA</h3><div class="mini-row"><span>Média</span><span>4,93 dias</span></div><div class="mini-row"><span>Indicador</span><span>Hospitalar</span></div></div>
+<div class="mini"><h3>MORTALIDADE</h3><div class="mini-row"><span>Óbitos</span><span>2.145</span></div><div class="mini-row"><span>Análise</span><span>Por território</span></div></div>
+<div class="mini"><h3>CUSTO</h3><div class="mini-row"><span>Médio / AIH</span><span>R$ 937,59</span></div><div class="mini-row"><span>Análise</span><span>Por período</span></div></div>
+</div>
+{% endblock %}

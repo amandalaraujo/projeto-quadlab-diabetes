@@ -1,0 +1,18 @@
+{% extends "dashboard/painel/base_painel.html" %}
+
+{% block title %}Complicações e CID-10 — QuadLab{% endblock %}
+{% block dash_title %}Complicações e CID-10{% endblock %}
+{% block dash_subtitle %}Principais complicações e classificações observadas nas internações{% endblock %}
+
+{% block dash_content %}
+<div class="panels">
+<div class="panel"><div class="panel-head"><h3>Principais complicações</h3><small>ranking</small></div>
+<div class="rank"><span class="rank-name">Complicação 01</span><div class="rank-track"><div class="rank-fill" style="width:86%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Complicação 02</span><div class="rank-track"><div class="rank-fill" style="width:68%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Complicação 03</span><div class="rank-track"><div class="rank-fill" style="width:53%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Complicação 04</span><div class="rank-track"><div class="rank-fill" style="width:39%"></div></div><span class="rank-val">—</span></div>
+</div>
+<div class="panel"><div class="panel-head"><h3>CID-10</h3><small>classificações</small></div><div class="placeholder">DISTRIBUIÇÃO POR CID-10</div></div>
+</div>
+<div class="insight"><b>Dados reais:</b> um protótipo com os gráficos gerados a partir do banco (modelo <code>AtendimentosDiabetes</code>) está disponível em <a href="{% url 'painel_dados_reais' %}">Complicações — dados reais</a>.</div>
+{% endblock %}

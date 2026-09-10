@@ -1,0 +1,18 @@
+{% extends "dashboard/base.html" %}
+
+{% block body %}
+<header class="public-header">
+  <a class="logo" href="{% url 'landing' %}"><div class="logo-mark"></div><span>QuadLab</span></a>
+  <nav class="nav">
+    <a href="{% url 'landing' %}#projeto">O projeto</a>
+    <a href="{% url 'landing' %}#descobertas">O que analisamos</a>
+    <a href="{% url 'landing' %}#metodologia">Metodologia</a>
+    <a href="{% url 'landing' %}#achados">Achados</a>
+  </nav>
+  <a class="btn btn-primary" href="{% url 'login' %}">Acessar análise →</a>
+</header>
+
+{% block public_content %}{% endblock %}
+
+<footer class="footer"><span>QuadLab · Projeto acadêmico</span><span>Dados: DataSUS / SIHSUS · Visualização: Power BI</span></footer>
+{% endblock %}

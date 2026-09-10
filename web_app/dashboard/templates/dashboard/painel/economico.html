@@ -1,0 +1,18 @@
+{% extends "dashboard/painel/base_painel.html" %}
+
+{% block title %}Impacto econômico — QuadLab{% endblock %}
+{% block dash_title %}Impacto econômico{% endblock %}
+{% block dash_subtitle %}Custos e permanência hospitalar associados às internações{% endblock %}
+
+{% block dash_content %}
+<div class="dashboard-grid">
+<div class="dcard"><div class="label">Custo total</div><div class="value">R$ 6 bi</div></div>
+<div class="dcard"><div class="label">Custo médio / AIH</div><div class="value">R$ 937,59</div></div>
+<div class="dcard"><div class="label">Permanência média</div><div class="value">4,93 dias</div></div>
+<div class="dcard"><div class="label">AIHs</div><div class="value">88,6 mil</div></div>
+</div>
+<div class="panels">
+<div class="panel"><div class="panel-head"><h3>Evolução do custo</h3></div><div class="placeholder">GRÁFICO DE CUSTOS POR PERÍODO</div></div>
+<div class="panel"><div class="panel-head"><h3>Permanência hospitalar</h3></div><div class="placeholder">GRÁFICO DE PERMANÊNCIA</div></div>
+</div>
+{% endblock %}

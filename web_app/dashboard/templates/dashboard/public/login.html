@@ -1,0 +1,21 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Acessar análise — QuadLab{% endblock %}
+
+{% block body %}
+<div class="login-page">
+  <div class="login-card">
+    <div class="logo"><div class="logo-mark"></div><span>QuadLab</span></div>
+    <h1>Acesse a análise</h1>
+    <p class="sub">Área destinada à exploração dos dashboards do projeto. Informe as credenciais fornecidas.</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="field"><label for="id_usuario">Usuário</label><input id="id_usuario" name="usuario" type="text" placeholder="Digite seu usuário"></div>
+      <div class="field"><label for="id_senha">Senha</label><input id="id_senha" name="senha" type="password" placeholder="Digite sua senha"></div>
+      <button class="btn btn-primary" type="submit">Entrar na área de análise →</button>
+    </form>
+    <p class="login-note">Acesso destinado à orientação e avaliação acadêmica.</p>
+    <a class="btn btn-outline" style="width:100%;margin-top:16px" href="{% url 'landing' %}">← Voltar ao site</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "dashboard/base.html" %}
+
+{% block body %}
+<div class="dashboard">
+<aside class="sidebar">
+  <a class="logo" href="{% url 'painel_overview' %}"><div class="logo-mark"></div><span>QuadLab</span></a>
+  <div class="side-section">Análises</div>
+  <a class="side-link {% if active_page == 'overview' %}active{% endif %}" href="{% url 'painel_overview' %}">Visão geral</a>
+  <a class="side-link {% if active_page == 'territorio' %}active{% endif %}" href="{% url 'painel_territorio' %}">Onde estão?</a>
+  <a class="side-link {% if active_page == 'demografico' %}active{% endif %}" href="{% url 'painel_demografico' %}">Quem são?</a>
+  <a class="side-link {% if active_page == 'mortalidade' %}active{% endif %}" href="{% url 'painel_mortalidade' %}">Mortalidade</a>
+  <a class="side-link {% if active_page == 'complicacoes' %}active{% endif %}" href="{% url 'painel_complicacoes' %}">Complicações e CID-10</a>
+  <a class="side-link {% if active_page == 'evolucao' %}active{% endif %}" href="{% url 'painel_evolucao' %}">Evolução das AIHs</a>
+  <a class="side-link {% if active_page == 'economico' %}active{% endif %}" href="{% url 'painel_economico' %}">Impacto econômico</a>
+  <div class="sidebar-bottom"><a href="{% url 'landing' %}">← Sair da análise</a></div>
+</aside>
+
+<main class="dmain">
+  <div class="dhead">
+    <div><h1>{% block dash_title %}{% endblock %}</h1><p>{% block dash_subtitle %}{% endblock %}</p></div>
+    <div class="filters">
+      <span class="filter">Ano: <strong>2023–2025 ▾</strong></span>
+      <span class="filter">Região: <strong>Brasil ▾</strong></span>
+      <span class="filter">UF: <strong>Todas ▾</strong></span>
+      <span class="filter">Idade: <strong>Todas ▾</strong></span>
+    </div>
+  </div>
+  <div id="dashContent">
+    {% block dash_content %}{% endblock %}
+  </div>
+</main>
+</div>
+{% endblock %}

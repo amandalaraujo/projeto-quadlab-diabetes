@@ -1,0 +1,20 @@
+{% extends "dashboard/painel/base_painel.html" %}
+
+{% block title %}Onde estão as internações? — QuadLab{% endblock %}
+{% block dash_title %}Onde estão as internações?{% endblock %}
+{% block dash_subtitle %}Distribuição territorial por região, UF e município{% endblock %}
+
+{% block dash_content %}
+<div class="panels">
+<div class="panel"><div class="panel-head"><h3>Distribuição territorial</h3><small>Brasil</small></div>
+<div class="map"><div class="map-shape"></div><i class="map-dot" style="left:53%;top:56%"></i><i class="map-dot" style="left:48%;top:43%"></i><i class="map-dot" style="left:57%;top:65%"></i><i class="map-dot" style="left:44%;top:67%"></i></div></div>
+<div class="panel"><div class="panel-head"><h3>Internações por região</h3><small>AIHs</small></div>
+<div class="rank"><span class="rank-name">Sudeste</span><div class="rank-track"><div class="rank-fill" style="width:100%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Nordeste</span><div class="rank-track"><div class="rank-fill" style="width:72%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Sul</span><div class="rank-track"><div class="rank-fill" style="width:48%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Centro-Oeste</span><div class="rank-track"><div class="rank-fill" style="width:29%"></div></div><span class="rank-val">—</span></div>
+<div class="rank"><span class="rank-name">Norte</span><div class="rank-track"><div class="rank-fill" style="width:22%"></div></div><span class="rank-val">—</span></div>
+</div></div>
+<div class="panel" style="margin-top:20px"><div class="panel-head"><h3>Ranking por município</h3><small>maiores volumes</small></div>
+<table class="table"><tr><th>Município</th><th>UF</th><th>Internações</th></tr><tr><td>São Paulo</td><td>SP</td><td>20,1k</td></tr><tr><td>Guarulhos</td><td>SP</td><td>3,3k</td></tr><tr><td>São Bernardo</td><td>SP</td><td>2,4k</td></tr><tr><td>Campinas</td><td>SP</td><td>1,6k</td></tr></table></div>
+{% endblock %}

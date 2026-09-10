@@ -1,0 +1,92 @@
+{% extends "dashboard/public/base_public.html" %}
+
+{% block public_content %}
+<div class="hero">
+  <div>
+    <div class="eyebrow">Análise de dados em saúde</div>
+    <h1>Diabetes Mellitus em dados.</h1>
+    <p>O QuadLab transforma dados públicos do SIHSUS em informações visuais para compreender as internações hospitalares relacionadas ao Diabetes Mellitus no Brasil — onde acontecem, quem são os pacientes e o impacto no sistema de saúde.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="#descobertas">Explorar os dados ↓</a>
+      <a class="btn btn-outline" href="{% url 'login' %}">Acessar dashboards</a>
+    </div>
+  </div>
+  <div class="preview">
+    <div class="preview-top"><span>QUADLAB / VISÃO GERAL</span><span>SIHSUS</span></div>
+    <div class="preview-title">Panorama das internações</div>
+    <div class="kpi-row">
+      <div class="kpi"><b>88,6 mil</b><span>AIHs analisadas</span></div>
+      <div class="kpi"><b>2.145</b><span>óbitos</span></div>
+      <div class="kpi"><b>R$ 6 bi</b><span>custo total</span></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-head"><span>Evolução das internações</span><span>2023 — 2025</span></div>
+      <svg viewBox="0 0 460 150">
+        <line x1="0" y1="130" x2="460" y2="130" stroke="#e2e8f0"/>
+        <line x1="0" y1="85" x2="460" y2="85" stroke="#f1f5f9"/>
+        <polyline points="10,106 85,83 160,96 235,53 310,67 385,42 450,52" fill="none" stroke="#0d9488" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="10,120 85,113 160,116 235,101 310,107 385,94 450,98" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="450" cy="52" r="5" fill="#0d9488"/>
+      </svg>
+      <div class="legend"><span><i class="dot" style="background:#0d9488"></i>Internações</span><span><i class="dot" style="background:#f43f5e"></i>Casos graves</span></div>
+    </div>
+  </div>
+</div>
+
+<section id="projeto" class="section alt">
+<div class="section-inner">
+  <div class="section-heading">
+    <h2>Transformar dados em perguntas.</h2>
+    <p>O objetivo do projeto é tornar uma base extensa de internações hospitalares mais fácil de interpretar. Em vez de apenas apresentar números, o QuadLab organiza os dados para permitir comparações territoriais, demográficas, clínicas e econômicas.</p>
+  </div>
+</div>
+</section>
+
+<section id="descobertas" class="section">
+  <div class="section-heading">
+    <h2>O que podemos descobrir?</h2>
+    <p>O site apresenta os principais eixos da análise. Os dashboards completos ficam disponíveis na área restrita.</p>
+  </div>
+  <div class="discovery-grid">
+    <div class="discovery"><div class="num">01</div><h3>Onde estão?</h3><p>Distribuição das internações por região, estado e município.</p><span class="arrow">Distribuição territorial →</span></div>
+    <div class="discovery"><div class="num">02</div><h3>Quem são?</h3><p>Perfil dos pacientes segundo faixa etária e gênero.</p><span class="arrow">Perfil demográfico →</span></div>
+    <div class="discovery"><div class="num">03</div><h3>O que acontece?</h3><p>Gravidade, complicações e mortalidade associadas às internações.</p><span class="arrow">Perfil clínico →</span></div>
+    <div class="discovery"><div class="num">04</div><h3>Como evolui?</h3><p>Comportamento das internações e dos indicadores ao longo do tempo.</p><span class="arrow">Evolução temporal →</span></div>
+    <div class="discovery"><div class="num">05</div><h3>Quanto custa?</h3><p>Custos das internações, permanência hospitalar e impacto econômico.</p><span class="arrow">Impacto econômico →</span></div>
+  </div>
+</section>
+
+<section id="achados" class="section alt">
+<div class="section-inner">
+  <div class="section-heading">
+    <h2>Principais achados</h2>
+    <p>Uma prévia dos indicadores apresentados nos dashboards. Os valores abaixo podem ser substituídos pelos resultados finais consolidados do projeto.</p>
+  </div>
+  <div class="findings">
+    <div class="finding"><b>88,6 mil</b><span>AIHs relacionadas ao Diabetes Mellitus.</span></div>
+    <div class="finding"><b>2.145</b><span>óbitos registrados no conjunto.</span></div>
+    <div class="finding"><b>4,93 dias</b><span>média de permanência hospitalar.</span></div>
+    <div class="finding"><b>R$ 937,59</b><span>custo médio por internação.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="metodologia" class="section">
+  <div class="section-heading">
+    <h2>Como os dados foram tratados?</h2>
+    <p>Da fonte pública até os painéis interativos, o projeto organiza o processo em três etapas.</p>
+  </div>
+  <div class="method">
+    <div class="method-card"><div class="num">01 — FONTE</div><h3>Dados públicos</h3><p>Extração das Autorizações de Internação Hospitalar (AIH) do SIHSUS, com recorte relacionado ao Diabetes Mellitus segundo a classificação utilizada pelo projeto.</p></div>
+    <div class="method-card"><div class="num">02 — TRATAMENTO</div><h3>Organização dos dados</h3><p>Limpeza, padronização e agregação das informações para permitir análises por território, perfil dos pacientes, período, complicações e indicadores.</p></div>
+    <div class="method-card"><div class="num">03 — VISUALIZAÇÃO</div><h3>Power BI</h3><p>Modelagem e construção dos dashboards interativos para exploração dos indicadores e comparação dos diferentes recortes.</p></div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+<div class="access">
+  <div><h2>Quer investigar os dados em profundidade?</h2><p>Acesse a área restrita para explorar os dashboards analíticos desenvolvidos em Power BI.</p></div>
+  <a class="btn" style="background:#fff;color:var(--navy)" href="{% url 'login' %}">Acessar dashboards →</a>
+</div>
+</section>
+{% endblock %}

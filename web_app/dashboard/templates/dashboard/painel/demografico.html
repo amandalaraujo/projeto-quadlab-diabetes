@@ -1,0 +1,18 @@
+{% extends "dashboard/painel/base_painel.html" %}
+
+{% block title %}Quem são os pacientes? — QuadLab{% endblock %}
+{% block dash_title %}Quem são os pacientes?{% endblock %}
+{% block dash_subtitle %}Perfil demográfico das internações{% endblock %}
+
+{% block dash_content %}
+<div class="dashboard-grid">
+<div class="dcard"><div class="label">Faixa predominante</div><div class="value">—</div><div class="trend">ver base final</div></div>
+<div class="dcard"><div class="label">Gênero</div><div class="value">—</div><div class="trend">distribuição</div></div>
+<div class="dcard"><div class="label">Internações</div><div class="value">88,6 mil</div><div class="trend">total</div></div>
+<div class="dcard"><div class="label">Óbitos</div><div class="value">2.145</div><div class="trend">total</div></div>
+</div>
+<div class="panels">
+<div class="panel"><div class="panel-head"><h3>Internações por faixa etária</h3></div><div class="placeholder">GRÁFICO DE DISTRIBUIÇÃO ETÁRIA</div></div>
+<div class="panel"><div class="panel-head"><h3>Distribuição por gênero</h3></div><div class="placeholder">GRÁFICO DE GÊNERO</div></div>
+</div>
+{% endblock %}

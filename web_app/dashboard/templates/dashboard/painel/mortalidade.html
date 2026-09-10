@@ -1,0 +1,15 @@
+{% extends "dashboard/painel/base_painel.html" %}
+
+{% block title %}Mortalidade — QuadLab{% endblock %}
+{% block dash_title %}Mortalidade{% endblock %}
+{% block dash_subtitle %}Óbitos e indicadores de mortalidade associados às internações{% endblock %}
+
+{% block dash_content %}
+<div class="dashboard-grid">
+<div class="dcard"><div class="label">Óbitos</div><div class="value">2.145</div></div>
+<div class="dcard"><div class="label">Internações</div><div class="value">88,6 mil</div></div>
+<div class="dcard"><div class="label">Taxa de mortalidade</div><div class="value">—</div></div>
+<div class="dcard"><div class="label">Período</div><div class="value">2023–25</div></div>
+</div>
+<div class="panel" style="margin-top:20px"><div class="panel-head"><h3>Mortalidade por território e perfil</h3><small>use os filtros</small></div><div class="placeholder">GRÁFICO / MAPA DE MORTALIDADE</div></div>
+{% endblock %}

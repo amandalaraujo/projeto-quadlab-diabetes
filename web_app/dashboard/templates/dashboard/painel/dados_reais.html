@@ -1,0 +1,77 @@
+{% extends "dashboard/painel/base_painel.html" %}
+
+{% block title %}Complicações — dados reais — QuadLab{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block dash_title %}Complicações — dados reais{% endblock %}
+{% block dash_subtitle %}Protótipo com gráficos gerados a partir do banco (modelo AtendimentosDiabetes){% endblock %}
+
+{% block dash_content %}
+<div class="panel">
+  <div class="panel-head"><h3>Distribuição de complicações</h3><small>Diabetes SP 2025</small></div>
+  <canvas id="graficoComplicacoes" style="max-width: 700px"></canvas>
+</div>
+
+<div class="panel" style="margin-top:14px">
+  <div class="panel-head"><h3>Complicações por mês</h3><small>2025</small></div>
+  <canvas id="graficoMensal" style="max-width: 900px"></canvas>
+</div>
+
+{{ labels|json_script:"data-labels" }}
+{{ valores|json_script:"data-valores" }}
+{{ meses|json_script:"data-meses" }}
+{{ series_mensais|json_script:"data-series-mensais" }}
+
+<script>
+  // ---------- Gráfico 1: distribuição geral ----------
+  const labels = JSON.parse(document.getElementById("data-labels").textContent);
+  const valores = JSON.parse(document.getElementById("data-valores").textContent);
+
+  new Chart(document.getElementById("graficoComplicacoes"), {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Nº de atendimentos",
+          data: valores,
+          backgroundColor: ["#4C72B0", "#DD8452", "#55A868", "#C44E52"],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+    },
+  });
+
+  // ---------- Gráfico 2: evolução mensal ----------
+  const meses = JSON.parse(document.getElementById("data-meses").textContent);
+  const seriesMensais = JSON.parse(document.getElementById("data-series-mensais").textContent);
+
+  const cores = ["#4C72B0", "#DD8452", "#55A868", "#C44E52"];
+  const datasetsMensais = Object.keys(seriesMensais).map((tipo, index) => ({
+    label: tipo,
+    data: seriesMensais[tipo],
+    borderColor: cores[index % cores.length],
+    backgroundColor: cores[index % cores.length],
+    fill: false,
+    tension: 0.2,
+  }));
+
+  new Chart(document.getElementById("graficoMensal"), {
+    type: "line",
+    data: {
+      labels: meses,
+      datasets: datasetsMensais,
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: true } },
+    },
+  });
+</script>
+{% endblock %}
