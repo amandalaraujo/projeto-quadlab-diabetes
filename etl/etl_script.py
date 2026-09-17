@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()  # Carrega variáveis de ambiente do arquivo .env
+
 # ==============================================================================
 # PIPELINE PRINCIPAL DE ETL PARA DADOS DO SIHSUS (SUS) - DIABETES
 # ==============================================================================
