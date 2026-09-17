@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Visão geral{% endblock %}
+
+{% block page_subtitle %}Panorama das internações hospitalares relacionadas ao Diabetes Mellitus{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-grid">
+  <div class="dcard">
+    <div class="label">AIHs diabetes</div>
+    <div class="value">88,6 mil</div>
+    <div class="trend">↑ indicador principal</div>
+  </div>
+  <div class="dcard">
+    <div class="label">Casos graves</div>
+    <div class="value">25,3%</div>
+    <div class="trend">↑ severidade</div>
+  </div>
+  <div class="dcard">
+    <div class="label">Óbitos</div>
+    <div class="value">2.145</div>
+    <div class="trend">mortalidade</div>
+  </div>
+  <div class="dcard">
+    <div class="label">Custo total</div>
+    <div class="value">R$ 6 bi</div>
+    <div class="trend">impacto econômico</div>
+  </div>
+</div>
+
+<div class="panels">
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Evolução das internações (Mês a Mês)</h3>
+      <small>2025</small>
+    </div>
+    <canvas id="graficoMensal" style="width: 100%; height: 260px"></canvas>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Distribuição por Complicação</h3>
+      <small>Panorama</small>
+    </div>
+    <canvas
+      id="graficoComplicacoes"
+      style="width: 100%; height: 260px"
+    ></canvas>
+  </div>
+</div>
+
+<div class="bottom-panels">
+  <div class="mini">
+    <h3>PERMANÊNCIA</h3>
+    <div class="mini-row"><span>Média</span><span>4,93 dias</span></div>
+    <div class="mini-row"><span>Indicador</span><span>Hospitalar</span></div>
+  </div>
+  <div class="mini">
+    <h3>MORTALIDADE</h3>
+    <div class="mini-row"><span>Óbitos</span><span>2.145</span></div>
+    <div class="mini-row"><span>Análise</span><span>Por território</span></div>
+  </div>
+  <div class="mini">
+    <h3>CUSTO</h3>
+    <div class="mini-row"><span>Médio / AIH</span><span>R$ 937,59</span></div>
+    <div class="mini-row"><span>Análise</span><span>Por período</span></div>
+  </div>
+</div>
+
+{{ labels|json_script:"data-labels" }} 
+{{ valores|json_script:"data-valores" }}
+{{ meses|json_script:"data-meses" }} 
+{{ series_mensais|json_script:"data-series-mensais" }}
+
+<script>
+  const labels = JSON.parse(document.getElementById("data-labels").textContent);
+  const valores = JSON.parse(
+    document.getElementById("data-valores").textContent,
+  );
+
+  new Chart(document.getElementById("graficoComplicacoes"), {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Nº de atendimentos",
+          data: valores,
+          backgroundColor: ["#12b8a6", "#f04461", "#f5a623", "#4f7cff"],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+    },
+  });
+
+  const meses = JSON.parse(document.getElementById("data-meses").textContent);
+  const seriesMensais = JSON.parse(
+    document.getElementById("data-series-mensais").textContent,
+  );
+
+  const cores = ["#12b8a6", "#f04461", "#f5a623", "#4f7cff"];
+  const datasetsMensais = Object.keys(seriesMensais).map((tipo, index) => ({
+    label: tipo,
+    data: seriesMensais[tipo],
+    borderColor: cores[index % cores.length],
+    backgroundColor: cores[index % cores.length],
+    fill: false,
+    tension: 0.2,
+  }));
+
+  new Chart(document.getElementById("graficoMensal"), {
+    type: "line",
+    data: {
+      labels: meses,
+      datasets: datasetsMensais,
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: true } },
+    },
+  });
+</script>
+{% endblock %}

@@ -2,25 +2,22 @@ from django.shortcuts import render
 from django.db.models import Count
 from .models import AtendimentosDiabetes
 
-# Funcão 'home' para renderizar os dois gráficos na mesma página!
-# ******* Depois refatorar para separar em funções diferentes, caso necessário *******
-def home(request):
-    # --- Gráfico 1: distribuição geral de complicações ---
+def overview(request):
+    # Lógica de consulta ao Neon mantida
     complicacoes = (
         AtendimentosDiabetes.objects
         .values('tipo_complicacao')
-        .annotate(total=Count('id'))
+        .annotate(total=Count('*'))
         .order_by('-total')
     )
     labels = [item['tipo_complicacao'] for item in complicacoes]
     valores = [item['total'] for item in complicacoes]
 
-    # --- Gráfico 2: evolução mensal por tipo de complicação ---
     dados_mes = (
         AtendimentosDiabetes.objects
         .exclude(tipo_complicacao='Sem complicação grave registrada')
         .values('mes_cmpt', 'tipo_complicacao')
-        .annotate(total=Count('id'))
+        .annotate(total=Count('*'))
         .order_by('mes_cmpt')
     )
 
@@ -34,15 +31,30 @@ def home(request):
             for mes in meses
         ]
 
-        contexto = {
+    contexto = {
+        'page_key': 'overview',
         'labels': labels,
         'valores': valores,
         'meses': meses,
         'series_mensais': series_mensais,
     }
 
-    return render(request, 'dashboard/home.html', contexto)
+    return render(request, 'overview.html', contexto)
 
+def territory(request):
+    return render(request, 'territorio.html', {'page_key': 'territory'})
 
-def quadlab_moderno(request):
-    return render(request, 'dashboard/quadlab_moderno.html')
+def demographic(request):
+    return render(request, 'demografia.html', {'page_key': 'demographic'})
+
+def mortality(request):
+    return render(request, 'mortalidade.html', {'page_key': 'mortality'})
+
+def complications(request):
+    return render(request, 'complicacoes.html', {'page_key': 'complications'})
+
+def evolution(request):
+    return render(request, 'evolucao.html', {'page_key': 'evolution'})
+
+def economic(request):
+    return render(request, 'economico.html', {'page_key': 'economic'})
