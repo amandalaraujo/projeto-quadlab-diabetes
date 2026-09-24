@@ -1,67 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.db.models import Count
 from .models import AtendimentosDiabetes
 
-
-# ---------------------------------------------------------------------------
-# Área pública
-# ---------------------------------------------------------------------------
-
-def landing(request):
-    """Página institucional/pública do QuadLab (protótipo)."""
-    return render(request, 'dashboard/public/landing.html')
-
-
-def login_view(request):
-    """Tela de acesso à área de análise.
-
-    TODO: implementar autenticação real (django.contrib.auth) quando o
-    controle de usuários do projeto for definido. Por enquanto, qualquer
-    envio do formulário libera o acesso ao painel (protótipo).
-    """
-    if request.method == 'POST':
-        return redirect('painel_overview')
-    return render(request, 'dashboard/public/login.html')
-
-
-# ---------------------------------------------------------------------------
-# Área do painel (protótipo — conteúdo ainda estático, sem dados reais)
-# ---------------------------------------------------------------------------
-
-def painel_overview(request):
-    return render(request, 'dashboard/painel/overview.html', {'active_page': 'overview'})
-
-
-def painel_territorio(request):
-    return render(request, 'dashboard/painel/territorio.html', {'active_page': 'territorio'})
-
-
-def painel_demografico(request):
-    return render(request, 'dashboard/painel/demografico.html', {'active_page': 'demografico'})
-
-
-def painel_mortalidade(request):
-    return render(request, 'dashboard/painel/mortalidade.html', {'active_page': 'mortalidade'})
-
-
-def painel_complicacoes(request):
-    return render(request, 'dashboard/painel/complicacoes.html', {'active_page': 'complicacoes'})
-
-
-def painel_evolucao(request):
-    return render(request, 'dashboard/painel/evolucao.html', {'active_page': 'evolucao'})
-
-
-def painel_economico(request):
-    return render(request, 'dashboard/painel/economico.html', {'active_page': 'economico'})
-
-
-def painel_dados_reais(request):
-    """Protótipo com dados reais, gerados a partir do model AtendimentosDiabetes."""
+def overview(request):
+    # Lógica de consulta ao Neon mantida
     complicacoes = (
         AtendimentosDiabetes.objects
         .values('tipo_complicacao')
-        .annotate(total=Count('id'))
+        .annotate(total=Count('*'))
         .order_by('-total')
     )
     labels = [item['tipo_complicacao'] for item in complicacoes]
@@ -71,7 +17,7 @@ def painel_dados_reais(request):
         AtendimentosDiabetes.objects
         .exclude(tipo_complicacao='Sem complicação grave registrada')
         .values('mes_cmpt', 'tipo_complicacao')
-        .annotate(total=Count('id'))
+        .annotate(total=Count('*'))
         .order_by('mes_cmpt')
     )
 
@@ -86,10 +32,29 @@ def painel_dados_reais(request):
         ]
 
     contexto = {
-        'active_page': 'complicacoes',
+        'page_key': 'overview',
         'labels': labels,
         'valores': valores,
         'meses': meses,
         'series_mensais': series_mensais,
     }
-    return render(request, 'dashboard/painel/dados_reais.html', contexto)
+
+    return render(request, 'overview.html', contexto)
+
+def territory(request):
+    return render(request, 'territorio.html', {'page_key': 'territory'})
+
+def demographic(request):
+    return render(request, 'demografia.html', {'page_key': 'demographic'})
+
+def mortality(request):
+    return render(request, 'mortalidade.html', {'page_key': 'mortality'})
+
+def complications(request):
+    return render(request, 'complicacoes.html', {'page_key': 'complications'})
+
+def evolution(request):
+    return render(request, 'evolucao.html', {'page_key': 'evolution'})
+
+def economic(request):
+    return render(request, 'economico.html', {'page_key': 'economic'})

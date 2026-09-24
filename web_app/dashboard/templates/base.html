@@ -1,0 +1,89 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuadLab — Diabetes Mellitus em Dados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Link para o arquivo CSS estático -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="dashboard">
+      <aside class="sidebar">
+        <div class="logo">
+          <div class="logo-mark"></div>
+          <span>QuadLab</span>
+        </div>
+        <div class="side-section">Análises</div>
+
+        <a
+          href="{% url 'overview' %}"
+          class="side-link {% if page_key == 'overview' %}active{% endif %}"
+          >Visão geral</a
+        >
+        <a
+          href="{% url 'territory' %}"
+          class="side-link {% if page_key == 'territory' %}active{% endif %}"
+          >Onde estão?</a
+        >
+        <a
+          href="{% url 'demographic' %}"
+          class="side-link {% if page_key == 'demographic' %}active{% endif %}"
+          >Quem são?</a
+        >
+        <a
+          href="{% url 'mortality' %}"
+          class="side-link {% if page_key == 'mortality' %}active{% endif %}"
+          >Mortalidade</a
+        >
+        <a
+          href="{% url 'complications' %}"
+          class="side-link {% if page_key == 'complications' %}active{% endif %}"
+          >Complicações e CID-10</a
+        >
+        <a
+          href="{% url 'evolution' %}"
+          class="side-link {% if page_key == 'evolution' %}active{% endif %}"
+          >Evolução das AIHs</a
+        >
+        <a
+          href="{% url 'economic' %}"
+          class="side-link {% if page_key == 'economic' %}active{% endif %}"
+          >Impacto econômico</a
+        >
+      </aside>
+
+      <main class="dmain">
+        <div class="dhead">
+          <div>
+            <h1>{% block page_title %}Visão geral{% endblock %}</h1>
+            <p>
+              {% block page_subtitle %}Panorama das internações hospitalares
+              relacionadas ao Diabetes Mellitus{% endblock %}
+            </p>
+          </div>
+          <div class="filters">
+            <span class="filter">Ano: <strong>2023–2025 ▾</strong></span>
+            <span class="filter">Região: <strong>Brasil ▾</strong></span>
+            <span class="filter">UF: <strong>Todas ▾</strong></span>
+            <span class="filter">Idade: <strong>Todas ▾</strong></span>
+          </div>
+        </div>
+
+        <div id="dashContent">{% block content %}{% endblock %}</div>
+      </main>
+    </div>
+
+    {% block extra_js %} {% endblock %}
+  </body>
+</html>
