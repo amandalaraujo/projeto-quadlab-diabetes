@@ -4,8 +4,11 @@ from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Redireciona a raiz (http://localhost:8000/) direto para o dashboard
+    # API consumida pelo front-end em React (frontend/)
+    path('api/', include('dashboard.api.urls')),
+    # Views antigas em Django templates — mantidas durante a migração para
+    # o React. Podem ser removidas (junto com dashboard/urls.py e
+    # dashboard/templates/) quando o front novo cobrir todas as páginas.
     path('', RedirectView.as_view(url='/dashboard/overview/', permanent=False)),
-    # Inclui todas as rotas criadas no app dashboard
     path('dashboard/', include('dashboard.urls')),
 ]
