@@ -272,6 +272,71 @@ class EvolutionAPIView(APIView):
             "fig_evolucao": fig_evolucao.to_plotly_json(),
         })
 
+class ComplicationsAPIView(APIView):
+    """Complicações e CID-10 — distribuição das complicações e principais diagnósticos."""
+
+    def get(self, request):
+        # Distribuição das AIHs por tipo de complicação.
+        dados_complicacoes = (
+            AtendimentosDiabetes.objects
+            .exclude(tipo_complicacao__isnull=True)
+            .exclude(tipo_complicacao="")
+            .values("tipo_complicacao")
+            .annotate(total=Count("n_aih", distinct=True))
+            .order_by("-total")
+        )
+
+        fig_complicacoes = go.Figure(
+            data=[
+                go.Bar(
+                    x=[item["tipo_complicacao"] for item in dados_complicacoes],
+                    y=[item["total"] for item in dados_complicacoes],
+                    marker_color="#12b8a6",
+                )
+            ]
+        )
+
+        fig_complicacoes.update_layout(
+            xaxis_title="Tipo de complicação",
+            yaxis_title="Número de AIHs",
+            margin=dict(l=50, r=20, t=20, b=80),
+            showlegend=False,
+        )
+
+        # Principais diagnósticos CID-10 registrados nas AIHs.
+        dados_cid10 = (
+            AtendimentosDiabetes.objects
+            .exclude(diag_princ__isnull=True)
+            .exclude(diag_princ="")
+            .values("diag_princ")
+            .annotate(total=Count("n_aih", distinct=True))
+            .order_by("-total")[:10]
+        )
+
+        fig_cid10 = go.Figure(
+            data=[
+                go.Bar(
+                    x=[item["total"] for item in dados_cid10],
+                    y=[item["diag_princ"] for item in dados_cid10],
+                    orientation="h",
+                    marker_color="#4f7cff",
+                )
+            ]
+        )
+
+        fig_cid10.update_layout(
+            xaxis_title="Número de AIHs",
+            yaxis_title="CID-10",
+            yaxis=dict(autorange="reversed"),
+            margin=dict(l=70, r=20, t=20, b=50),
+            showlegend=False,
+        )
+
+        return Response({
+            "fig_complicacoes": fig_complicacoes.to_plotly_json(),
+            "fig_cid10": fig_cid10.to_plotly_json(),
+        })
+
 
 # TODO (mesmo padrão dos acima): MortalityAPIView (filtrar morte=1, cruzar
 # com tipo_complicacao/UF), ComplicationsAPIView (agrupar por diag_princ /

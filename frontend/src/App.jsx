@@ -42,9 +42,15 @@ export default function App() {
         element={<Placeholder title="Mortalidade" subtitle="Em construção" />}
       />
       <Route
-        path="/complicacoes"
-        element={<Placeholder title="Complicações e CID-10" subtitle="Em construção" />}
-      />
+  path="/complicacoes"
+  element={
+    <FigurePage
+      title="Complicações e CID-10"
+      subtitle="Distribuição das complicações e principais diagnósticos"
+      endpoint="/complications/"
+    />
+  }
+/>
       <Route
   path="/evolucao"
   element={
