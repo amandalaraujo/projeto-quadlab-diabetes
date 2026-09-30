@@ -228,6 +228,50 @@ class EconomicAPIView(APIView):
         fig.update_layout(margin=dict(l=30, r=10, t=10, b=30), showlegend=False)
         return Response({"fig_custo_mensal": fig.to_plotly_json()})
 
+class EvolutionAPIView(APIView):
+    """Evolução das AIHs — série temporal mensal das internações."""
+
+    def get(self, request):
+        dados_mensais = (
+            AtendimentosDiabetes.objects
+            .values("ano_cmpt", "mes_cmpt")
+            .annotate(total=Count("n_aih", distinct=True))
+            .order_by("ano_cmpt", "mes_cmpt")
+        )
+
+        periodos = [
+            f'{item["mes_cmpt"]:02d}/{item["ano_cmpt"]}'
+            for item in dados_mensais
+        ]
+
+        totais = [
+            item["total"]
+            for item in dados_mensais
+        ]
+
+        fig_evolucao = go.Figure(
+            data=[
+                go.Scatter(
+                    x=periodos,
+                    y=totais,
+                    mode="lines+markers",
+                    name="AIHs",
+                    line=dict(color="#12b8a6"),
+                )
+            ]
+        )
+
+        fig_evolucao.update_layout(
+            xaxis_title="Mês/Ano",
+            yaxis_title="Número de AIHs",
+            margin=dict(l=50, r=20, t=20, b=50),
+            showlegend=False,
+        )
+
+        return Response({
+            "fig_evolucao": fig_evolucao.to_plotly_json(),
+        })
+
 
 # TODO (mesmo padrão dos acima): MortalityAPIView (filtrar morte=1, cruzar
 # com tipo_complicacao/UF), ComplicationsAPIView (agrupar por diag_princ /
