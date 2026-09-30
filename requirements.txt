@@ -4,7 +4,7 @@ cycler==0.12.1
 django-cors-headers==4.7.0
 dj-database-url==3.1.2
 Django==6.1
-djangorestframework==3.16.1
+djangorestframework==3.18.1
 plotly==5.24.1
 fonttools==4.63.0
 greenlet==3.5.5
