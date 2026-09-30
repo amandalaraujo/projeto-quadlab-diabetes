@@ -337,6 +337,86 @@ class ComplicationsAPIView(APIView):
             "fig_cid10": fig_cid10.to_plotly_json(),
         })
 
+class MortalityAPIView(APIView):
+    """Mortalidade — distribuição dos óbitos por complicação e UF."""
+
+    def get(self, request):
+        # Considera somente internações que evoluíram para óbito.
+        obitos = AtendimentosDiabetes.objects.filter(morte=1)
+
+        # Óbitos por tipo de complicação.
+        obitos_por_complicacao = (
+            obitos
+            .exclude(tipo_complicacao__isnull=True)
+            .exclude(tipo_complicacao="")
+            .values("tipo_complicacao")
+            .annotate(total=Count("n_aih", distinct=True))
+            .order_by("-total")
+        )
+
+        fig_por_complicacao = go.Figure(
+            data=[
+                go.Bar(
+                    x=[
+                        item["tipo_complicacao"]
+                        for item in obitos_por_complicacao
+                    ],
+                    y=[
+                        item["total"]
+                        for item in obitos_por_complicacao
+                    ],
+                    marker_color="#f04461",
+                )
+            ]
+        )
+
+        fig_por_complicacao.update_layout(
+            xaxis_title="Tipo de complicação",
+            yaxis_title="Número de óbitos",
+            margin=dict(l=50, r=20, t=20, b=80),
+            showlegend=False,
+        )
+
+        # Óbitos por UF de residência.
+        obitos_por_uf = (
+            obitos
+            .exclude(res_sigla_uf__isnull=True)
+            .exclude(res_sigla_uf="")
+            .values("res_sigla_uf")
+            .annotate(total=Count("n_aih", distinct=True))
+            .order_by("-total")
+        )
+
+        fig_por_uf = go.Figure(
+            data=[
+                go.Bar(
+                    x=[
+                        item["res_sigla_uf"]
+                        for item in obitos_por_uf
+                    ],
+                    y=[
+                        item["total"]
+                        for item in obitos_por_uf
+                    ],
+                    marker_color="#4f7cff",
+                )
+            ]
+        )
+
+        fig_por_uf.update_layout(
+            xaxis_title="UF",
+            yaxis_title="Número de óbitos",
+            margin=dict(l=50, r=20, t=20, b=50),
+            showlegend=False,
+        )
+
+        return Response({
+            "fig_mortalidade_complicacao":
+                fig_por_complicacao.to_plotly_json(),
+            "fig_mortalidade_uf":
+                fig_por_uf.to_plotly_json(),
+        })
+
 
 # TODO (mesmo padrão dos acima): MortalityAPIView (filtrar morte=1, cruzar
 # com tipo_complicacao/UF), ComplicationsAPIView (agrupar por diag_princ /

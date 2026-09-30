@@ -38,9 +38,15 @@ export default function App() {
         }
       />
       <Route
-        path="/mortalidade"
-        element={<Placeholder title="Mortalidade" subtitle="Em construção" />}
-      />
+  path="/mortalidade"
+  element={
+    <FigurePage
+      title="Mortalidade"
+      subtitle="Distribuição dos óbitos por complicação e unidade da federação"
+      endpoint="/mortality/"
+    />
+  }
+/>
       <Route
   path="/complicacoes"
   element={
