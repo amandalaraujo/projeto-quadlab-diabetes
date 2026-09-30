@@ -38,17 +38,35 @@ export default function App() {
         }
       />
       <Route
-        path="/mortalidade"
-        element={<Placeholder title="Mortalidade" subtitle="Em construção" />}
-      />
+  path="/mortalidade"
+  element={
+    <FigurePage
+      title="Mortalidade"
+      subtitle="Distribuição dos óbitos por complicação e unidade da federação"
+      endpoint="/mortality/"
+    />
+  }
+/>
       <Route
-        path="/complicacoes"
-        element={<Placeholder title="Complicações e CID-10" subtitle="Em construção" />}
-      />
+  path="/complicacoes"
+  element={
+    <FigurePage
+      title="Complicações e CID-10"
+      subtitle="Distribuição das complicações e principais diagnósticos"
+      endpoint="/complications/"
+    />
+  }
+/>
       <Route
-        path="/evolucao"
-        element={<Placeholder title="Evolução das AIHs" subtitle="Em construção" />}
-      />
+  path="/evolucao"
+  element={
+    <FigurePage
+      title="Evolução das AIHs"
+      subtitle="Série temporal mensal das internações"
+      endpoint="/evolution/"
+    />
+  }
+/>
     </Routes>
   );
 }
