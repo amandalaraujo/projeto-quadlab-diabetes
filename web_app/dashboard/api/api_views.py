@@ -92,25 +92,79 @@ class OverviewAPIView(APIView):
 
 
 class TerritoryAPIView(APIView):
-    """'Onde estão?' — internações por UF (uf_zi)."""
+    """Onde estão? — internações por UF e concentração por município."""
 
     def get(self, request):
-        qs = (
-            AtendimentosDiabetes.objects.values("uf_zi")
+        # Gráfico existente: quantidade de registros por UF.
+        dados_por_uf = (
+            AtendimentosDiabetes.objects
+            .values("uf_zi")
             .annotate(total=Count("*"))
             .order_by("-total")
         )
-        fig = go.Figure(
+
+        fig_por_uf = go.Figure(
             data=[
                 go.Bar(
-                    x=[str(r["uf_zi"]) for r in qs],
-                    y=[r["total"] for r in qs],
+                    x=[str(item["uf_zi"]) for item in dados_por_uf],
+                    y=[item["total"] for item in dados_por_uf],
                     marker_color="#12b8a6",
                 )
             ]
         )
-        fig.update_layout(margin=dict(l=30, r=10, t=10, b=30), showlegend=False)
-        return Response({"fig_por_uf": fig.to_plotly_json()})
+
+        fig_por_uf.update_layout(
+            margin=dict(l=30, r=10, t=10, b=30),
+            showlegend=False,
+        )
+
+        # Funcionalidade integrada do protótipo:
+        # mapa de calor utilizando município e coordenadas de residência.
+        dados_mapa = (
+            AtendimentosDiabetes.objects
+            .exclude(res_latitude__isnull=True)
+            .exclude(res_longitude__isnull=True)
+            .values(
+                "res_munnome",
+                "res_latitude",
+                "res_longitude",
+            )
+            .annotate(total=Count("n_aih", distinct=True))
+            .order_by("-total")
+        )
+
+        fig_mapa_calor = go.Figure(
+            data=[
+                go.Densitymapbox(
+                    lat=[float(item["res_latitude"]) for item in dados_mapa],
+                    lon=[float(item["res_longitude"]) for item in dados_mapa],
+                    z=[item["total"] for item in dados_mapa],
+                    customdata=[item["res_munnome"] for item in dados_mapa],
+                    radius=22,
+                    colorscale="YlOrRd",
+                    hovertemplate=(
+                        "<b>%{customdata}</b><br>"
+                        "%{z} AIHs"
+                        "<extra></extra>"
+                    ),
+                )
+            ]
+        )
+
+        fig_mapa_calor.update_layout(
+            mapbox_style="open-street-map",
+            mapbox=dict(
+                center=dict(lat=-22.2, lon=-48.5),
+                zoom=5,
+            ),
+            margin=dict(l=10, r=10, t=10, b=10),
+            showlegend=False,
+        )
+
+        return Response({
+            "fig_por_uf": fig_por_uf.to_plotly_json(),
+            "fig_mapa_calor": fig_mapa_calor.to_plotly_json(),
+        })
 
 
 class DemographicAPIView(APIView):
