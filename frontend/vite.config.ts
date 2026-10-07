@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
 
   resolve: {
     alias: [
@@ -14,7 +15,17 @@ export default defineConfig({
           "node_modules/plotly.js-dist-min/plotly.min.js"
         ),
       },
+      { find: "@", replacement: path.resolve(__dirname, "src") },
     ],
+  },
+
+  build: {
+    rollupOptions: {
+      output: {
+        // Plotly num arquivo próprio: só é baixado ao abrir o dashboard.
+        manualChunks: (id) => (id.includes("plotly") ? "plotly" : undefined),
+      },
+    },
   },
 
   server: {
