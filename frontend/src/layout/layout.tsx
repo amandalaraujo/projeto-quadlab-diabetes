@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Outlet, ScrollRestoration, useMatches } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { Badge } from "@/components/badge";
@@ -6,7 +6,10 @@ import { Button } from "@/components/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/tooltip";
 import type { PageHandle } from "@/routes";
-import { DATASET } from "@/routes/pages";
+import { useFilters } from "@/hooks/use-filters";
+import { apiUrl, fetchCached } from "@/hooks/use-api";
+import { DATASET, PAGES } from "@/routes/pages";
+import { FilterBar } from "@/components/filter-bar";
 import { Logo } from "@/components/logo";
 import Sidebar, { NavLinks, SidebarFooter } from "./sidebar";
 
@@ -64,12 +67,32 @@ function DatasetPills() {
 }
 
 /**
+ * Pré-carrega, em segundo plano, o código e os dados (com os filtros
+ * atuais) de todas as páginas, para a troca de página ser instantânea.
+ * Espera um pouco para não disputar banda com a página aberta.
+ */
+function usePrefetchPages() {
+  const { query } = useFilters();
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      for (const page of PAGES) {
+        void page.load();
+        fetchCached(apiUrl(page.endpoint, query)).catch(() => {});
+      }
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+}
+
+/**
  * Rota pai de todas as páginas: menu lateral, cabeçalho e `<Outlet />`.
  * Título e subtítulo vêm do `handle` da rota ativa (ver routes/index.tsx).
  */
 export default function Layout() {
   const matches = useMatches();
   const handle = matches[matches.length - 1]?.handle as PageHandle | undefined;
+  usePrefetchPages();
 
   return (
     <div className="min-h-screen">
@@ -77,7 +100,7 @@ export default function Layout() {
       <MobileBar />
 
       <main className="px-4 py-5.5 sm:px-9.5 sm:py-8.5 nav:ml-60">
-        <header className="mb-6.5">
+        <header className="mb-4">
           <h1 className="text-[28px] leading-tight font-extrabold tracking-[-1px] text-ink">
             {handle?.title}
           </h1>
@@ -87,7 +110,12 @@ export default function Layout() {
           </div>
         </header>
 
-        {/* As páginas são carregadas sob demanda (ver routes/index.tsx). */}
+        {/* Filtros globais: fixos no topo ao rolar, valem para todas as páginas. */}
+        <div className="sticky top-14 z-20 -mx-4 mb-5 border-b border-line bg-canvas/90 px-4 py-2.5 backdrop-blur sm:-mx-9.5 sm:px-9.5 nav:top-0">
+          <FilterBar />
+        </div>
+
+        {/* As páginas são carregadas sob demanda (ver routes/pages.ts). */}
         <Suspense fallback={null}>
           <Outlet />
         </Suspense>

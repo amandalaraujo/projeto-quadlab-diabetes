@@ -1,8 +1,6 @@
-// O react-plotly.js usa o bundle `plotly.js-dist-min` (alias no vite.config.ts).
-// Só precisamos do resize; o resto dos tipos vem de @types/plotly.js.
+// O bundle `plotly.js-dist-min` (alias no vite.config.ts) tem a mesma API
+// do `plotly.js`; os tipos vêm de @types/plotly.js.
 declare module "plotly.js-dist-min" {
-  const Plotly: {
-    Plots: { resize(graphDiv: HTMLElement): Promise<void> };
-  };
+  import * as Plotly from "plotly.js";
   export default Plotly;
 }

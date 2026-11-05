@@ -8,7 +8,6 @@ import { useScrolled } from "@/hooks/use-scrolled";
 import { DATASET } from "@/routes/pages";
 import type { Figure, OverviewResponse } from "@/types/api";
 import { cn } from "@/utils/cn";
-import { isNoComplication } from "@/utils/complications";
 import { formatCompact, formatMoney, formatNumber } from "@/utils/format";
 
 /*
@@ -25,31 +24,64 @@ const NAV = [
   { href: "#descobertas", label: "O que analisamos" },
   { href: "#metodologia", label: "Metodologia" },
   { href: "#achados", label: "Achados" },
+  { href: "#sobre", label: "Sobre" },
 ];
+
+// Iniciativa e propósito do projeto (documentação no Notion).
+const ABOUT = [
+  {
+    step: "01 — INICIATIVA",
+    title: "Nasceu na Fábrica de Software",
+    text: "O projeto foi desenvolvido na disciplina de Fábrica de Software, com a proposta de usar dados do DATASUS para criar uma solução de análise de dados voltada à saúde. Com o Diabetes Mellitus como tema, os dados foram organizados e tratados para construir indicadores e visualizações sobre as internações hospitalares relacionadas à doença no Brasil.",
+  },
+  {
+    step: "02 — PROPÓSITO",
+    title: "Uma visão ampla do impacto",
+    text: "Proporcionar uma visão ampla do impacto do Diabetes Mellitus nas internações hospitalares, com recursos visuais que facilitam a identificação de padrões e diferenças: distribuição territorial e custos, panorama epidemiológico, perfil dos pacientes, complicações por CID-10, faixas etárias e mortalidade.",
+  },
+];
+
+// Dimensões exploradas nos dados, que viraram os filtros do dashboard.
+const DIMENSIONS = ["Ano", "Gênero", "Etnia", "Região", "UF de residência", "Município de atendimento", "Faixa etária"];
+
+const TEAM = [
+  "Tauane Carolina Oliveira Miranda dos Santos",
+  "Amanda Lorena Ajaujo",
+  "Victor Alves Farias",
+  "Guilherme Esteves",
+  "Marcos Vinicius Guimarães",
+];
+const COLLABORATOR = "Amanda Andrade";
 
 const DISCOVERIES = [
-  { title: "Onde estão?", text: "Distribuição das internações por região, estado e município.", link: "Distribuição territorial", to: "/territorio" },
+  { title: "Onde estão?", text: "Distribuição das internações por região, estado e município.", link: "Distribuição territorial", to: "/criticidade" },
   { title: "Quem são?", text: "Perfil dos pacientes segundo faixa etária e gênero.", link: "Perfil demográfico", to: "/demografia" },
   { title: "O que acontece?", text: "Gravidade, complicações e mortalidade associadas às internações.", link: "Perfil clínico", to: "/complicacoes" },
-  { title: "Como evolui?", text: "Comportamento das internações e dos indicadores ao longo do tempo.", link: "Evolução temporal", to: "/evolucao" },
-  { title: "Quanto custa?", text: "Custos das internações, permanência hospitalar e impacto econômico.", link: "Impacto econômico", to: "/economico" },
+  { title: "Como evolui?", text: "Comportamento das internações e dos indicadores ao longo do tempo.", link: "Panorama epidemiológico", to: "/panorama" },
+  { title: "Quanto custa?", text: "Custos das internações, permanência hospitalar e impacto econômico.", link: "Impacto econômico", to: "/dashboard" },
 ];
 
+// Origem dos dados e processo ETL (documentação no Notion).
 const METHOD = [
   {
     step: "01 — FONTE",
-    title: "Dados públicos",
-    text: "Extração das Autorizações de Internação Hospitalar (AIH) do SIHSUS, com recorte relacionado ao Diabetes Mellitus segundo a classificação utilizada pelo projeto.",
+    title: "SIH/SUS",
+    text: "Registros das Autorizações de Internação Hospitalar (AIHs) financiadas pelo SUS, na base tratada e enriquecida pela Fiocruz e disponibilizada pela PCDaS. Recorte: diagnósticos E10 a E14 da CID-10 e suas complicações.",
   },
   {
-    step: "02 — TRATAMENTO",
-    title: "Organização dos dados",
-    text: "Limpeza, padronização e agregação das informações para permitir análises por território, perfil dos pacientes, período, complicações e indicadores.",
+    step: "02 — EXTRAÇÃO",
+    title: "Microdados do DATASUS",
+    text: "Download, no servidor FTP do DATASUS, dos arquivos .dbc com os microdados do SIH/SUS de cada estado, ano e mês — processo reexecutado a cada novo período disponível.",
   },
   {
-    step: "03 — VISUALIZAÇÃO",
-    title: "Power BI",
-    text: "Modelagem e construção dos dashboards interativos para exploração dos indicadores e comparação dos diferentes recortes.",
+    step: "03 — TRANSFORMAÇÃO",
+    title: "Decodificação",
+    text: "Decodificação e enriquecimento dos dados de acordo com o dicionário de dados do SIH/SUS, com processamento no Excel e no Power Query.",
+  },
+  {
+    step: "04 — VISUALIZAÇÃO",
+    title: "Painéis interativos",
+    text: "Indicadores e gráficos organizados por território, perfil dos pacientes, complicações e mortalidade, com filtros para comparar diferentes recortes.",
   },
 ];
 
@@ -96,15 +128,11 @@ function Header() {
 
 /** Pontos das duas linhas do mini-gráfico, escalados para o viewBox 460×150. */
 function sparkline(figure: Figure) {
-  const months = figure.data[0]?.x?.length ?? 0;
-  const sum = (filter: (name: string) => boolean) =>
-    Array.from({ length: months }, (_, i) =>
-      figure.data
-        .filter((t) => filter(t.name ?? ""))
-        .reduce((acc, t) => acc + (t.y?.[i] ?? 0), 0),
-    );
-  const total = sum(() => true);
-  const severe = sum((name) => !isNoComplication(name));
+  // fig_evolucao do /overview/: [AIHs diabetes, AIHs graves, Óbitos].
+  const [totalTrace, severeTrace] = figure.data;
+  const months = totalTrace?.x?.length ?? 0;
+  const total = totalTrace?.y ?? [];
+  const severe = severeTrace?.y ?? [];
 
   const all = [...total, ...severe];
   const min = Math.min(...all);
@@ -124,7 +152,7 @@ function Preview({ data }: { data: OverviewResponse | null }) {
   const kpis = data?.kpis;
   const line = data ? sparkline(data.fig_evolucao) : null;
   const items = [
-    { value: formatCompact(kpis?.total_aihs), label: "AIHs analisadas" },
+    { value: formatCompact(kpis?.aihs), label: "AIHs analisadas" },
     { value: formatNumber(kpis?.obitos), label: "óbitos" },
     { value: formatMoney(kpis?.custo_total, { compact: true }), label: "custo total" },
   ];
@@ -272,7 +300,7 @@ function Discoveries() {
 function Findings({ data }: { data: OverviewResponse | null }) {
   const kpis = data?.kpis;
   const items = [
-    { value: formatCompact(kpis?.total_aihs), text: "AIHs relacionadas ao Diabetes Mellitus." },
+    { value: formatCompact(kpis?.aihs), text: "AIHs relacionadas ao Diabetes Mellitus." },
     { value: formatNumber(kpis?.obitos), text: "óbitos registrados no conjunto." },
     {
       value: `${formatNumber(kpis?.permanencia_media, { maximumFractionDigits: 2 })} dias`,
@@ -301,7 +329,7 @@ function Findings({ data }: { data: OverviewResponse | null }) {
 
 function Method() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 wide:grid-cols-4">
       {METHOD.map(({ step, title, text }) => (
         <div key={step} className="rounded-[18px] border border-line bg-white p-7 shadow-card">
           <div className="mb-3 text-[11px] font-extrabold text-brand-strong">{step}</div>
@@ -323,7 +351,7 @@ function Access() {
             Quer investigar os dados em profundidade?
           </h2>
           <p className="mt-2 text-sm text-faint">
-            Acesse a área restrita para explorar os dashboards analíticos desenvolvidos em Power BI.
+            Acesse a área de análise para explorar os indicadores com filtros por território, perfil e período.
           </p>
         </div>
         <Button asChild size="lg" className="relative z-10 bg-white text-ink shadow-none hover:bg-white">
@@ -334,11 +362,68 @@ function Access() {
   );
 }
 
+const initials = (name: string) =>
+  name
+    .split(" ")
+    .filter((w) => w.length > 2)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("");
+
+/** Iniciativa, propósito, dimensões e equipe, no mesmo visual dos cards da Metodologia. */
+function About() {
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-4 nav:grid-cols-2">
+        {ABOUT.map(({ step, title, text }) => (
+          <div key={step} className="rounded-[18px] border border-line bg-canvas p-7">
+            <div className="mb-3 text-[11px] font-extrabold text-brand-strong">{step}</div>
+            <h3 className="mb-2 text-lg font-bold">{title}</h3>
+            <p className="text-[13px] leading-[1.7] text-muted">{text}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-10 text-center">
+        <div className="text-[11px] font-extrabold tracking-[1.5px] text-faint uppercase">Dimensões exploradas nos dados</div>
+        <div className="mt-3.5 flex flex-wrap justify-center gap-2">
+          {DIMENSIONS.map((d) => (
+            <span key={d} className="rounded-full bg-[#d9faf5] px-3.5 py-1.75 text-xs font-bold text-brand-strong">
+              {d}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-16 text-center">
+        <h3 className="text-[26px] leading-tight font-extrabold tracking-[-1px]">Quem fez</h3>
+        <p className="mt-2 text-sm text-muted">Equipe do projeto na disciplina de Fábrica de Software.</p>
+      </div>
+      <div className="mt-8 grid grid-cols-1 gap-3.5 sm:grid-cols-2 wide:grid-cols-5">
+        {TEAM.map((name) => (
+          <div
+            key={name}
+            className="flex flex-col items-center rounded-[18px] border border-line bg-canvas px-4 py-6 text-center transition duration-250 hover:-translate-y-1 hover:border-[#b9ebe5]"
+          >
+            <span className="grid size-14 place-items-center rounded-full bg-[linear-gradient(135deg,#12b8a6,#6f8cff)] text-base font-extrabold text-white shadow-[0_8px_20px_rgba(18,184,166,0.25)]">
+              {initials(name)}
+            </span>
+            <span className="mt-3.5 text-[13px] leading-snug font-bold">{name}</span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-6 text-center text-sm text-muted">
+        Em colaboração com <strong className="text-ink">{COLLABORATOR}</strong>.
+      </p>
+    </>
+  );
+}
+
 function Footer() {
   return (
     <footer className="mx-auto flex max-w-[1180px] flex-wrap justify-between gap-2 px-6 py-8.5 text-[11px] font-semibold text-faint">
       <span>QuadLab · Projeto acadêmico</span>
-      <span>Dados: DataSUS / SIHSUS · Visualização: Power BI</span>
+      <span>Dados: DATASUS / SIH/SUS · Fiocruz / PCDaS</span>
     </footer>
   );
 }
@@ -379,9 +464,18 @@ export default function Landing() {
       <Section
         id="metodologia"
         title="Como os dados foram tratados?"
-        text="Da fonte pública até os painéis interativos, o projeto organiza o processo em três etapas."
+        text="Da fonte pública até os painéis interativos: de onde vêm os dados e o processo ETL aplicado."
       >
         <Method />
+      </Section>
+
+      <Section
+        id="sobre"
+        alt
+        title="Sobre o projeto"
+        text="Por que o QuadLab existe, o que ele busca mostrar e quem está por trás dele."
+      >
+        <About />
       </Section>
 
       <Access />

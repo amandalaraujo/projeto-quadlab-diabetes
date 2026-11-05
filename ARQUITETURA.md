@@ -8,7 +8,8 @@ Migração do monólito Django (templates + Chart.js) para:
   dentro das views da API (`web_app/dashboard/api/api_views.py`) e
   devolvidos como JSON (`fig.to_plotly_json()`).
 - **Frontend**: aplicação React separada em `frontend/` (Vite), que
-  consome a API e renderiza as figuras com `react-plotly.js`.
+  consome a API e renderiza as figuras com o Plotly (`plotly.js-dist-min`,
+  via `components/chart-card.tsx`).
 
 As views antigas em `web_app/dashboard/views.py` + templates continuam no
 repo por enquanto (rodando em paralelo em `/dashboard/...`), pra vocês
@@ -42,27 +43,49 @@ vocês quiserem rodar os dois em portas/domínios diferentes sem proxy
 
 ## Endpoints da API já implementados
 
-| Página (React)      | Endpoint             | View                    |
-|----------------------|-----------------------|--------------------------|
-| Visão geral           | `/api/overview/`      | `OverviewAPIView`        |
-| Onde estão?           | `/api/territory/`     | `TerritoryAPIView`       |
-| Quem são?             | `/api/demographic/`   | `DemographicAPIView`     |
-| Mortalidade           | `/api/mortality/`     | `MortalityAPIView`       |
-| Complicações e CID-10 | `/api/complications/` | `ComplicationsAPIView`   |
-| Evolução das AIHs     | `/api/evolution/`     | `EvolutionAPIView`       |
-| Impacto econômico     | `/api/economic/`      | `EconomicAPIView`        |
+Uma página por tela do dashboard (documentação no Notion),
+na mesma ordem:
+
+| Página (React)                          | Rota            | Endpoint              | View                   |
+|------------------------------------------|-----------------|------------------------|-------------------------|
+| 1. Distribuição territorial e custos     | `/dashboard`    | `/api/territory/`      | `TerritoryAPIView`      |
+| 2. Panorama epidemiológico               | `/panorama`     | `/api/overview/`       | `OverviewAPIView`       |
+| 3. Dispersão e municípios críticos       | `/criticidade`  | `/api/criticality/`    | `CriticalityAPIView`    |
+| 4. Panorama geral das AIHs               | `/aihs`         | `/api/general/`        | `GeneralAPIView`        |
+| 5. Perfil demográfico e mortalidade      | `/demografia`   | `/api/demographic/`    | `DemographicAPIView`    |
+| 6. Complicações e CID-10                 | `/complicacoes` | `/api/complications/`  | `ComplicationsAPIView`  |
+| 7. Padrão etário                         | `/padrao-etario`| `/api/age-pattern/`    | `AgePatternAPIView`     |
+| 8. Mortalidade: procedimentos            | `/mortalidade`  | `/api/mortality/`      | `MortalityAPIView`      |
+| (barra de filtros)                       | —               | `/api/filters/`        | `FiltersAPIView`        |
+
+### Filtros globais
+
+Todos os endpoints (menos `/api/filters/`) aceitam os mesmos filtros como
+query params repetidos, um por valor: `?ano=2025&uf=SP&uf=MG&faixa=60-64a`.
+Filtros: `ano`, `sexo`, `raca`, `regiao`, `uf` (residência), `municipio`
+(atendimento), `faixa` (faixa etária de 5 anos) e `cid` (tipo de diabetes).
+A definição fica em `web_app/dashboard/api/filters.py`. No front, o estado
+dos filtros fica na URL (`hooks/use-filters.ts`), então vale para todas as
+páginas e pode ser compartilhado por link.
 
 ## Adicionando uma página nova
 
-Backend: consulta agregada via ORM → `go.Figure(...)` →
-`fig.to_plotly_json()` na `Response`, com as chaves das figuras
-começando por `fig_`.
+Backend: `queryset_filtrado(request)` → consulta agregada via ORM →
+`go.Figure(...)` → `fig.to_plotly_json()` na `Response` (chaves `fig_*`),
+mais KPIs em `kpis` e tabelas como listas de dicts.
 
-Frontend: adicione um item em `frontend/src/routes/pages.ts` com
-`endpoint` e os títulos de cada figura em `figures`. O menu lateral e
-a rota saem dali automaticamente, e o `FigurePage` desenha um card por
-figura. Se a página precisar de KPIs ou de um layout próprio, copie
-`overview.tsx`.
+Frontend: crie o componente em `frontend/src/pages/` usando
+`useFilteredApi` + `PageState` (veja `territory.tsx`) e adicione um item
+em `frontend/src/routes/pages.ts` (com `endpoint`, para entrar no
+pré-carregamento). O menu lateral e a rota saem dali. Cada `ChartCard` /
+`DataTable` aceita `info` (botão "?" com como ler + interpretação
+calculada a partir dos dados filtrados). No fim da página, `<Conclusion>`
+com o panorama final: as conclusões dos dados do recorte (veja `territory.tsx`).
+
+As respostas da API ficam num cache em memória por URL
+(`hooks/use-api.ts`), e o `Layout` pré-carrega código e dados de todas
+as páginas com os filtros atuais, então trocar de página não refaz
+requisições. O cache vive até recarregar a aba.
 
 ## Frontend: TypeScript + Tailwind + Radix
 
@@ -72,7 +95,7 @@ frontend/src/
 ├── components/   Button, Card, Badge, Tabs, Tooltip, Sheet... (Radix) + ChartCard, KpiCard
 ├── hooks/        useApi
 ├── layout/       Layout (rota pai com <Outlet />) e Sidebar
-├── pages/        Overview e FigurePage
+├── pages/        uma página por tela do dashboard (territory, overview, criticality...)
 ├── routes/       pages.ts (menu + páginas) e index.tsx (createBrowserRouter)
 ├── types/        formato das respostas da API
 └── utils/        cn, formatação, tema do Plotly, ajustes de figuras

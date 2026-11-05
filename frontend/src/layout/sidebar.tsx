@@ -1,10 +1,13 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Logo } from "@/components/logo";
 import { DATASET, PAGES } from "@/routes/pages";
 import { cn } from "@/utils/cn";
 
 /** Links de navegação — usados no menu fixo (desktop) e no Sheet (mobile). */
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  // Mantém a query string (filtros globais) ao trocar de página.
+  const { search } = useLocation();
+
   return (
     <nav>
       <div className="mt-4.5 mb-2.25 px-3 text-[9px] font-extrabold tracking-[1.3px] text-faint uppercase">
@@ -13,7 +16,7 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
       {PAGES.map(({ path, label, icon: Icon }) => (
         <NavLink
           key={path}
-          to={path}
+          to={{ pathname: path, search }}
           end
           onClick={onNavigate}
           className={({ isActive }) =>

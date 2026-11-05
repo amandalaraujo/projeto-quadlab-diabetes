@@ -1,267 +1,209 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/card";
-import { ChartCard, ChartCardSkeleton } from "@/components/chart-card";
-import { ErrorState } from "@/components/error-state";
-import { KpiCard, KpiCardSkeleton } from "@/components/kpi-card";
-import { Skeleton } from "@/components/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@/components/tabs";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/tooltip";
-import { useApi } from "@/hooks/use-api";
-import type { Figure, OverviewResponse, Trace } from "@/types/api";
-import { BRAND, complicationColor, isNoComplication } from "@/utils/complications";
-import { formatMoney, formatNumber, formatPercent, monthLabel } from "@/utils/format";
+import { ChartCard } from "@/components/chart-card";
+import { Conclusion, joinPt } from "@/components/conclusion";
+import { DataTable, ShareBar, type Column } from "@/components/data-table";
+import type { ChartInfo } from "@/components/info-popover";
+import { KpiCard } from "@/components/kpi-card";
+import { GRID, PageState } from "@/components/page-state";
+import { useFilteredApi } from "@/hooks/use-api";
+import type { OverviewResponse } from "@/types/api";
+import { formatMoney, formatNumber, formatPercent } from "@/utils/format";
+import { maxBy, minBy, points, sum } from "@/utils/stats";
 
-type EvolutionView = "complicacao" | "total";
+type Row = OverviewResponse["municipios"][number];
 
-function EvolutionChart({ figure }: { figure: Figure }) {
-  const [view, setView] = useState<EvolutionView>("complicacao");
+const COLUMNS: Column<Row>[] = [
+  { key: "municipio", header: "Município de atendimento", render: (r) => `${r.municipio} · ${r.uf}`, sortValue: (r) => r.municipio },
+  { key: "aihs", header: "AIHs diabetes", align: "right", render: (r) => formatNumber(r.aihs), sortValue: (r) => r.aihs },
+  {
+    key: "pct_graves",
+    header: "% Graves",
+    align: "right",
+    render: (r) => <ShareBar value={formatPercent(r.pct_graves)} fraction={r.pct_graves ?? 0} color="var(--color-blue)" />,
+    sortValue: (r) => r.pct_graves,
+  },
+  { key: "obitos", header: "Óbitos", align: "right", render: (r) => formatNumber(r.obitos), sortValue: (r) => r.obitos },
+  { key: "custo_medio", header: "Custo / AIH", align: "right", render: (r) => formatMoney(r.custo_medio), sortValue: (r) => r.custo_medio },
+];
 
-  const traces = useMemo<Trace[]>(() => {
-    const series = figure.data.map((s) => ({ ...s, x: (s.x ?? []).map(monthLabel) }));
-    if (view === "total") {
-      const x = series[0]?.x ?? [];
-      const y = x.map((_, i) => series.reduce((sum, s) => sum + (s.y?.[i] ?? 0), 0));
-      return [
-        {
-          type: "scatter",
-          mode: "lines+markers",
-          name: "Total",
-          x,
-          y,
-          line: { color: BRAND, width: 2.5, shape: "spline" },
-          marker: { size: 6, color: BRAND },
-          fill: "tozeroy",
-          fillcolor: "rgba(18, 184, 166, 0.08)",
-          hovertemplate: "<b>%{y:,} AIHs</b><extra></extra>",
-        },
-      ];
-    }
-    return series.map((s) => {
-      const color = complicationColor(s.name ?? "", s.line?.color);
-      return {
-        ...s,
-        line: { color, width: 2.5, shape: "spline" },
-        marker: { size: 5, color },
-        hovertemplate: `${s.name}: <b>%{y:,}</b><extra></extra>`,
-      };
-    });
-  }, [figure, view]);
+function evolutionInfo(data: OverviewResponse): ChartInfo {
+  const [aihs, graves, obitos] = data.fig_evolucao.data.map(points);
+  const peak = maxBy(aihs ?? [], (p) => p.y);
+  const low = minBy(aihs ?? [], (p) => p.y);
+  const shares = (aihs ?? []).map((p, i) => ({ x: p.x, share: p.y ? (graves?.[i]?.y ?? 0) / p.y : 0 }));
+  const worst = maxBy(shares, (s) => s.share);
+  const deaths = maxBy(obitos ?? [], (p) => p.y);
+  return {
+    how: "Linhas mensais de AIHs por diabetes, AIHs graves (coma, cetoacidose ou amputação) e óbitos. Os óbitos usam o eixo da direita, por serem bem menos numerosos.",
+    insights: [
+      peak && low && (aihs?.length ?? 0) > 1 && (
+        <>
+          O volume foi de {formatNumber(low.y)} AIHs ({low.x}) a {formatNumber(peak.y)} ({peak.x}).
+        </>
+      ),
+      worst && (
+        <>
+          A maior proporção de casos graves foi em <strong>{worst.x}</strong> ({formatPercent(worst.share)}); no período todo,{" "}
+          {formatPercent(data.kpis.pct_graves)}.
+        </>
+      ),
+      deaths && deaths.y > 0 && (
+        <>
+          Pico de óbitos em {deaths.x}, com {formatNumber(deaths.y)}.
+        </>
+      ),
+    ].filter(Boolean),
+    caveat: "Com poucos casos por mês (filtros muito restritos), as linhas oscilam por acaso; olhe a tendência, não um mês isolado.",
+  };
+}
 
-  return (
-    <ChartCard
-      title="Evolução das internações (Mês a Mês)"
-      figure={figure}
-      data={traces}
-      height={260}
-      layout={{
-        xaxis: { showgrid: false },
-        yaxis: { rangemode: "tozero" },
-        hovermode: "x unified",
-        showlegend: view !== "total",
-      }}
-      action={
-        <Tabs value={view} onValueChange={(v) => setView(v as EvolutionView)}>
-          <TabsList aria-label="Visualização da série">
-            <TabsTrigger value="complicacao">Por complicação</TabsTrigger>
-            <TabsTrigger value="total">Total</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      }
-    />
+function mapInfo(data: OverviewResponse): ChartInfo {
+  const rows = data.municipios;
+  const top = rows[0];
+  const top5 = sum(rows.slice(0, 5).map((r) => r.aihs)) / (data.kpis.aihs || 1);
+  return {
+    how: "Cada bolha é um município onde houve internação (o hospital, não a casa do paciente). Bolhas grandes indicam polos de atendimento.",
+    insights: [
+      top && (
+        <>
+          <strong>{top.municipio}</strong> atendeu {formatPercent(top.aihs / (data.kpis.aihs || 1))} das internações do recorte.
+        </>
+      ),
+      <>
+        Os 5 principais polos concentram {formatPercent(top5)} dos atendimentos, em {formatNumber(rows.length)} municípios com internação.
+      </>,
+    ].filter(Boolean),
+  };
+}
+
+function tableInfo(data: OverviewResponse): ChartInfo {
+  const relevant = data.municipios.filter((r) => r.aihs >= 100);
+  const severe = maxBy(relevant, (r) => r.pct_graves ?? 0);
+  const mild = minBy(relevant, (r) => r.pct_graves ?? 0);
+  return {
+    how: "Volume, gravidade e óbitos por município de atendimento. Ordene pelas colunas para comparar os polos.",
+    insights: [
+      severe && (
+        <>
+          Entre os polos com 100+ AIHs, <strong>{severe.municipio}</strong> tem a maior proporção de casos graves (
+          {formatPercent(severe.pct_graves)}), contra {formatPercent(data.kpis.pct_graves)} no geral.
+        </>
+      ),
+      mild && mild !== severe && (
+        <>
+          A menor é em <strong>{mild.municipio}</strong> ({formatPercent(mild.pct_graves)}).
+        </>
+      ),
+    ].filter(Boolean),
+    caveat: "Hospitais de referência recebem casos mais graves de outras cidades; % de graves alto não significa pior atendimento.",
+  };
+}
+
+function conclusion(data: OverviewResponse) {
+  const { kpis, municipios } = data;
+  const [aihs, graves] = data.fig_evolucao.data.map(points);
+  const peak = maxBy(aihs ?? [], (p) => p.y);
+  const shares = (aihs ?? []).map((p, i) => ({ x: p.x, share: p.y ? (graves?.[i]?.y ?? 0) / p.y : 0 }));
+  const worst = maxBy(shares, (s) => s.share);
+  const top5 = municipios.slice(0, 5);
+  const severe = maxBy(
+    municipios.filter((r) => r.aihs >= 100),
+    (r) => r.pct_graves ?? 0,
   );
+  return {
+    lead: (
+      <>
+        Foram <strong>{formatNumber(kpis.aihs)} internações por diabetes</strong>, das quais {formatNumber(kpis.graves)} (
+        {formatPercent(kpis.pct_graves)}) foram graves e <strong>{formatNumber(kpis.obitos)} terminaram em óbito</strong> (letalidade de{" "}
+        {formatPercent(kpis.letalidade, 2)}). A permanência média foi de {formatNumber(kpis.permanencia_media, { maximumFractionDigits: 1 })} dias,
+        com custo total de {formatMoney(kpis.custo_total)}.
+      </>
+    ),
+    points: [
+      <>
+        Os {top5.length} principais polos de atendimento foram {joinPt(top5.map((r) => <strong>{r.municipio}</strong>))}, que concentraram{" "}
+        {formatPercent(sum(top5.map((r) => r.aihs)) / (kpis.aihs || 1))} das internações.
+      </>,
+      peak && (
+        <>
+          O mês de maior volume foi <strong>{peak.x}</strong>, com {formatNumber(peak.y)} AIHs.
+        </>
+      ),
+      worst && (
+        <>
+          A gravidade foi maior em <strong>{worst.x}</strong>: {formatPercent(worst.share)} das internações do mês foram graves.
+        </>
+      ),
+      severe && (
+        <>
+          Entre os polos com 100+ AIHs, <strong>{severe.municipio}</strong> teve a maior proporção de casos graves ({formatPercent(severe.pct_graves)}).
+        </>
+      ),
+    ].filter(Boolean),
+  };
 }
 
-/** Ranking no estilo `.rank` do protótipo original: nome · barra · valor. */
-function ComplicationsRanking({ figure, total }: { figure: Figure; total: number }) {
-  const [bar] = figure.data;
-  const values = bar.y ?? [];
-  const baseColor = bar.marker?.color;
-  const rows = (bar.x ?? []).map(String).map((name, i) => ({
-    name,
-    value: values[i],
-    share: values[i] / total,
-    color: complicationColor(name, Array.isArray(baseColor) ? baseColor[i] : baseColor),
-  }));
-  const max = Math.max(...rows.map((r) => r.value));
-  const complicated = rows.filter((r) => !isNoComplication(r.name));
-  const topComplication = complicated[0];
-  const withComplication = complicated.reduce((sum, r) => sum + r.share, 0);
-
-  return (
-    <Card className="flex min-w-0 flex-col">
-      <CardHeader>
-        <CardTitle>Distribuição por Complicação</CardTitle>
-        <small className="rounded-full bg-canvas px-2 py-1.25 text-[9px] font-extrabold text-faint uppercase">
-          % das AIHs
-        </small>
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col pt-1">
-        {rows.map((row) => (
-          <div key={row.name} className="my-3.5 flex items-center gap-2.5 text-[11px] font-semibold">
-            <span className="w-27.5 shrink-0 leading-tight text-ink">{row.name}</span>
-            <div className="h-1.75 flex-1 overflow-hidden rounded-full bg-[#edf1f5]">
-              <div
-                className="h-full rounded-full transition-[width] duration-500 ease-out"
-                style={{ width: `${(row.value / max) * 100}%`, backgroundColor: row.color }}
-              />
-            </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="w-10.5 shrink-0 cursor-default text-right font-bold text-muted tabular-nums">
-                  {formatPercent(row.share, 0)}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                {formatNumber(row.value)} AIHs · {formatPercent(row.share)}
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        ))}
-
-        {topComplication && (
-          <div className="mt-auto rounded-[10px] border border-[#d8efeb] border-l-[3px] border-l-brand bg-[#f7fbfa] p-3.25 text-[11px] leading-relaxed text-[#52606d]">
-            <strong className="text-ink">{formatPercent(withComplication)}</strong> das
-            internações tiveram complicação grave registrada.{" "}
-            <strong className="text-ink">{topComplication.name}</strong> é a mais frequente, com{" "}
-            {formatPercent(topComplication.share)} do total.
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-interface SummaryRow {
-  label: string;
-  value: string;
-  /** Com `to`, o valor vira link para a página da análise. */
-  to?: string;
-}
-
-/** Cards de resumo do rodapé (`.bottom-panels` / `.mini` do template original). */
-function SummaryCard({ title, rows }: { title: string; rows: SummaryRow[] }) {
-  return (
-    <Card className="p-5">
-      <h3 className="mb-3 text-[10px] font-extrabold tracking-[1px] text-faint uppercase">{title}</h3>
-      {rows.map(({ label, value, to }) => (
-        <div
-          key={label}
-          className="flex justify-between gap-3 border-b border-dashed border-line py-2 text-[11px] font-semibold text-ink last:border-0 last:pb-0"
-        >
-          <span>{label}</span>
-          {to ? (
-            <Link to={to} className="hover:text-brand-strong hover:underline">
-              {value}
-            </Link>
-          ) : (
-            <span className="tabular-nums">{value}</span>
-          )}
-        </div>
-      ))}
-    </Card>
-  );
-}
-
-// Mesma grade do original: 4 KPIs por linha acima de 1050px (2 abaixo),
-// painéis 1.5fr / 1fr e 3 cards de resumo acima de 850px.
-const KPI_GRID = "grid grid-cols-2 gap-3.5 wide:grid-cols-4";
-const PANELS_GRID = "mt-3.5 grid grid-cols-1 gap-3.5 nav:grid-cols-[1.5fr_1fr]";
-const BOTTOM_GRID = "mt-3.5 grid grid-cols-1 gap-3.5 nav:grid-cols-3";
-
-function OverviewSkeleton() {
-  return (
-    <>
-      <div className={KPI_GRID}>
-        {Array.from({ length: 4 }, (_, i) => (
-          <KpiCardSkeleton key={i} />
-        ))}
-      </div>
-      <div className={PANELS_GRID}>
-        <ChartCardSkeleton height={260} />
-        <Card className="p-5">
-          <Skeleton className="h-4 w-40" />
-          <div className="mt-6 space-y-6">
-            {Array.from({ length: 4 }, (_, i) => (
-              <Skeleton key={i} className="h-3 w-full" />
-            ))}
-          </div>
-        </Card>
-      </div>
-      <div className={BOTTOM_GRID}>
-        {Array.from({ length: 3 }, (_, i) => (
-          <Card key={i} className="space-y-4 p-5">
-            <Skeleton className="h-2.5 w-24" />
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-full" />
-          </Card>
-        ))}
-      </div>
-    </>
-  );
-}
-
+/** Página 2 — Panorama epidemiológico do Diabetes Mellitus. */
 export default function Overview() {
-  const { data, error, loading, reload } = useApi<OverviewResponse>("/overview/");
-
-  if (loading) return <OverviewSkeleton />;
-  if (error || !data) return <ErrorState message={error} onRetry={reload} />;
-
-  const { kpis } = data;
+  const state = useFilteredApi<OverviewResponse>("/overview/");
 
   return (
-    <>
-      <div className={KPI_GRID}>
-        <KpiCard label="AIHs diabetes" value={formatNumber(kpis.total_aihs)} trend="↑ indicador principal" />
-        <KpiCard
-          label="Óbitos"
-          value={formatNumber(kpis.obitos)}
-          trend={`letalidade ${formatPercent(kpis.obitos / kpis.total_aihs, 2)}`}
-        />
-        <KpiCard
-          label="Custo total"
-          value={formatMoney(kpis.custo_total, { compact: true })}
-          fullValue={formatMoney(kpis.custo_total)}
-          trend={`${formatMoney(kpis.custo_medio)} por AIH`}
-        />
-        <KpiCard
-          label="Permanência média"
-          value={`${formatNumber(kpis.permanencia_media, { maximumFractionDigits: 1 })} dias`}
-          trend="indicador hospitalar"
-        />
-      </div>
+    <PageState {...state} isEmpty={(d) => d.kpis.aihs === 0}>
+      {({ kpis, ...data }) => (
+        <>
+          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 wide:grid-cols-6">
+            <KpiCard label="AIHs diabetes" value={formatNumber(kpis.aihs)} />
+            <KpiCard
+              label="% Graves"
+              value={formatPercent(kpis.pct_graves)}
+              trend={`${formatNumber(kpis.graves)} AIHs`}
+            />
+            <KpiCard label="Óbitos" value={formatNumber(kpis.obitos)} trend={`letalidade ${formatPercent(kpis.letalidade, 2)}`} />
+            <KpiCard
+              label="Média de permanência"
+              value={`${formatNumber(kpis.permanencia_media, { maximumFractionDigits: 2 })} dias`}
+            />
+            <KpiCard
+              label="Custo total"
+              value={formatMoney(kpis.custo_total, { compact: true })}
+              fullValue={formatMoney(kpis.custo_total)}
+            />
+            <KpiCard label="Custo por AIH" value={formatMoney(kpis.custo_medio)} />
+          </div>
 
-      <div className={PANELS_GRID}>
-        <EvolutionChart figure={data.fig_evolucao} />
-        <ComplicationsRanking figure={data.fig_complicacoes} total={kpis.total_aihs} />
-      </div>
+          <div className={GRID.full}>
+            <ChartCard
+              title="Evolução de casos e severidade"
+              description="AIHs por diabetes, AIHs graves (coma, cetoacidose, amputação) e óbitos (eixo à direita) por competência"
+              figure={data.fig_evolucao}
+              layout={{ xaxis: { showgrid: false } }}
+              height={300}
+              info={evolutionInfo({ kpis, ...data })}
+            />
+          </div>
 
-      <div className={BOTTOM_GRID}>
-        <SummaryCard
-          title="Permanência"
-          rows={[
-            {
-              label: "Média",
-              value: `${formatNumber(kpis.permanencia_media, { maximumFractionDigits: 2 })} dias`,
-            },
-            { label: "Indicador", value: "Hospitalar" },
-          ]}
-        />
-        <SummaryCard
-          title="Mortalidade"
-          rows={[
-            { label: "Óbitos", value: formatNumber(kpis.obitos) },
-            { label: "Análise", value: "Por território", to: "/mortalidade" },
-          ]}
-        />
-        <SummaryCard
-          title="Custo"
-          rows={[
-            { label: "Médio / AIH", value: formatMoney(kpis.custo_medio) },
-            { label: "Análise", value: "Por período", to: "/economico" },
-          ]}
-        />
-      </div>
-    </>
+          <div className={GRID.two}>
+            <ChartCard
+              title="Polos de atendimento"
+              description="AIHs por município onde a internação ocorreu"
+              figure={data.fig_mapa}
+              height={440}
+              info={mapInfo({ kpis, ...data })}
+            />
+            <DataTable
+              title="AIHs por município de atendimento"
+              description="Volume, gravidade e desfecho em cada polo"
+              rows={data.municipios}
+              columns={COLUMNS}
+              searchText={(r) => `${r.municipio} ${r.uf}`}
+              searchPlaceholder="Buscar município"
+              initialSort={{ key: "aihs", desc: true }}
+              maxHeight={400}
+              info={tableInfo({ kpis, ...data })}
+            />
+          </div>
+          <Conclusion {...conclusion({ kpis, ...data })} />
+        </>
+      )}
+    </PageState>
   );
 }
